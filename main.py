@@ -13,11 +13,12 @@ def clear():
 load_dotenv()
 bot=commands.Bot(
 	command_prefix = commands.when_mentioned_or(config["prefix"]),
-	status = discord.Status.dnd,
+	status = discord.Status.online,
+	activity = discord.CustomActivity(name="Doing contracts"),
 	intents = discord.Intents.all(),
-	owner_id = config["owner_id"]
+	owner_id = config["owner_id"],
+	help_command = None,
 )
-bot.remove_command('help')
 
 @bot.event
 async def on_ready():

@@ -1,4 +1,5 @@
 import json
+import discord
 from typing import TypedDict
 
 class BotConfig(TypedDict):
@@ -16,3 +17,5 @@ class ContractData(TypedDict):
 class ContractsUser(TypedDict):
 	status: str
 	contracts: dict[str, ContractData]
+
+NATSUMIN_EMBED_COLOR = discord.Color.from_rgb(67, 79, 93)

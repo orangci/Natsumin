@@ -1,2 +1,3 @@
 # Natsumin
- Discord bot for Anicord Event Server
+
+Discord bot for Anicord Event Server

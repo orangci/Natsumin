@@ -90,21 +90,39 @@ class Contracts(commands.Cog):
 		contract_database, last_updated_timestamp = _get_sheet_data_and_update()
 		contract_user = contract_database.get(user.name, None)
 		if not contract_user:
-			await ctx.respond("User not found, discord username must match with sheet username", ephemeral=True)
+			not_found_embed = discord.Embed(title="Contracts", color=discord.Color.red(), description="User not found! If this is a mistake please ping <@546659584727580692>")
+			await ctx.respond(embed=not_found_embed, ephemeral=True)
 			return
 		
-		contracts_embed = discord.Embed(title="Contracts", color=discord.Color.nitro_pink())
+		contracts_embed = discord.Embed(title="Contracts", color=NATSUMIN_EMBED_COLOR)
 		contracts_embed.set_author(name=f"{user.name}", icon_url=user.display_avatar.url)
 		last_updated_datetime = datetime.datetime.fromtimestamp(last_updated_timestamp)
-		contracts_embed.set_footer(text=f"Database last updated at {last_updated_datetime.strftime("%d/%m/%Y, %H:%M")}")
+		contracts_embed.set_footer(text=f"Database last updated on {last_updated_datetime.strftime("%d/%m/%Y, %H:%M")} UTC")
 		for contract_type in contract_user["contracts"]:
 			contract_data = contract_user["contracts"][contract_type]
-			if contract_data["name"] == "-":
+			contract_name = contract_data["name"]
+			if contract_name == "-":
 				continue
+			elif contract_name == "PLEASE SELECT":
+				contract_name = f"**{contract_name}**"
 
-			contracts_embed.add_field(name=f"{contract_type} {"✅" if contract_data["passed"] else "❌"}", value=contract_data["name"], inline=True)
+			contracts_embed.add_field(name=f"{contract_type} {"✅" if contract_data["passed"] else "❌"}", value=contract_name, inline=True)
 		
 		await ctx.respond(embed=contracts_embed, ephemeral=is_ephemeral)
+
+	@commands.command()
+	@commands.is_owner()
+	async def get_database(self, ctx: commands.Context):
+		contract_database, _ = _get_sheet_data_and_update()
+		with open("database.json", "w") as f:
+			json.dump(contract_database, f, indent=4)
+		await ctx.reply("Database now uploaded at ``database.json``",delete_after=3)
+
+	@commands.command()
+	@commands.is_owner()
+	async def purge_cache(self, ctx: commands.Context):
+		cache.clear()
+		await ctx.reply("Cache purged!! Next command will request updated data.",delete_after=3)
 
 def setup(bot:commands.Bot):
 	bot.add_cog(Contracts(bot))

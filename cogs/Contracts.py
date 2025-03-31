@@ -76,7 +76,7 @@ class Contracts(commands.Cog):
 		self, 
 		ctx: discord.ApplicationContext, 
 		user: discord.Option(discord.User, description="User to check contract's of", required=False), # type: ignore
-		is_ephemeral: discord.Option(bool, name="ephemeral", description="If the response is only visible to you", default=False) # type: ignore
+		is_ephemeral: discord.Option(bool, name="hidden", description="Whether you want the response only visible to you", default=False) # type: ignore
 		):
 		"""
 		if not await self.bot.is_owner(ctx.author):
@@ -98,14 +98,15 @@ class Contracts(commands.Cog):
 		contracts_embed = discord.Embed(color=NATSUMIN_EMBED_COLOR)
 		contracts_embed.set_author(name=f"{user.name}{f" [{contract_user["status"]}]" if contract_user["status"].strip() != "" else ""}", icon_url=user.display_avatar.url)
 		last_updated_datetime = datetime.datetime.fromtimestamp(last_updated_timestamp)
-		contracts_embed.set_footer(text=f"Database last updated on {last_updated_datetime.strftime("%d/%m/%Y, %H:%M")} UTC")
+		last_updated_datetime
+		contracts_embed.set_footer(text=f"Database last updated on {last_updated_datetime.strftime("%d/%m/%Y, %H:%M")} UTC", icon_url="https://cdn.discordapp.com/emojis/998705274074435584.webp?size=4096")
 		for contract_type in contract_user["contracts"]:
 			contract_data = contract_user["contracts"][contract_type]
 			contract_name = contract_data["name"]
 			if contract_name == "-":
 				continue
 			elif contract_name == "PLEASE SELECT":
-				contract_name = f"**{contract_name}**"
+				contract_name = f"__**{contract_name}**__"
 
 			if contract_data["passed"] == True:
 				contracts_passed += 1

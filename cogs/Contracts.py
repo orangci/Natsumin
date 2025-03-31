@@ -93,9 +93,10 @@ class Contracts(commands.Cog):
 			not_found_embed = discord.Embed(title="Contracts", color=discord.Color.red(), description="User not found! If this is a mistake please ping <@546659584727580692>")
 			await ctx.respond(embed=not_found_embed, ephemeral=True)
 			return
-		
-		contracts_embed = discord.Embed(title="Contracts", color=NATSUMIN_EMBED_COLOR)
-		contracts_embed.set_author(name=f"{user.name}", icon_url=user.display_avatar.url)
+
+		contracts_passed = 0
+		contracts_embed = discord.Embed(color=NATSUMIN_EMBED_COLOR)
+		contracts_embed.set_author(name=f"{user.name}{f" [{contract_user["status"]}]" if contract_user["status"].strip() != "" else ""}", icon_url=user.display_avatar.url)
 		last_updated_datetime = datetime.datetime.fromtimestamp(last_updated_timestamp)
 		contracts_embed.set_footer(text=f"Database last updated on {last_updated_datetime.strftime("%d/%m/%Y, %H:%M")} UTC")
 		for contract_type in contract_user["contracts"]:
@@ -106,8 +107,13 @@ class Contracts(commands.Cog):
 			elif contract_name == "PLEASE SELECT":
 				contract_name = f"**{contract_name}**"
 
+			if contract_data["passed"] == True:
+				contracts_passed += 1
+
 			contracts_embed.add_field(name=f"{contract_type} {"✅" if contract_data["passed"] else "❌"}", value=contract_name, inline=True)
+		contracts_embed.title = f"Contracts ({contracts_passed}/{len(contract_user["contracts"].keys())})"
 		
+
 		await ctx.respond(embed=contracts_embed, ephemeral=is_ephemeral)
 
 	@commands.command()

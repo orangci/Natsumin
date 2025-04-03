@@ -11,7 +11,9 @@ from discord.commands import slash_command
 SPREADSHEET_ID = "19aueoNx6BBU6amX7DhKGU8kHVauHWcSGiGKMzFSGkGc"
 GET_SHEET_DATA_URL = f"https://sheets.googleapis.com/v4/spreadsheets/{SPREADSHEET_ID}/values/Dashboard!A2%3AU394"
 
-cache = Cache(CACHE_TYPE='filesystem', CACHE_DIR='cache', CACHE_DEFAULT_TIMEOUT=6 * 60 * 60)
+CACHE_DURATION = 6
+
+cache = Cache(CACHE_TYPE='filesystem', CACHE_DIR='cache', CACHE_DEFAULT_TIMEOUT=CACHE_DURATION * 60 * 60)
 
 ROW_NAMES = {
 	0: "Base Contract",
@@ -135,22 +137,32 @@ class Contracts(commands.Cog):
 		contracts_passed = 0
 		contracts_embed = discord.Embed(color=NATSUMIN_EMBED_COLOR)
 		contracts_embed.set_author(name=f"{user.name}{f" [{contract_user["status"]}]" if contract_user["status"].strip() != "" else ""}", icon_url=user.display_avatar.url)
-		last_updated_datetime = datetime.datetime.fromtimestamp(last_updated_timestamp)
-		contracts_embed.set_footer(text=f"Database last updated on {last_updated_datetime.strftime("%d/%m/%Y, %H:%M")} UTC", icon_url="https://cdn.discordapp.com/emojis/998705274074435584.webp?size=4096")
+		last_updated_datetime = datetime.datetime.fromtimestamp(last_updated_timestamp, datetime.UTC)
+		next_update_datetime = last_updated_datetime + datetime.timedelta(hours=CACHE_DURATION)
+		current_datetime = datetime.datetime.now(datetime.UTC)
+		difference = next_update_datetime - current_datetime
+		difference_seconds = max(difference.total_seconds(), 0)
+		hours, remainder = divmod(difference_seconds, 3600)
+		minutes, seconds = divmod(remainder, 60)
+		contracts_embed.set_footer(
+			text=f"Data updating in {int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}",
+			icon_url="https://cdn.discordapp.com/emojis/998705274074435584.webp?size=4096"
+		)
 		for contract_type in contract_user["contracts"]:
 			contract_data = contract_user["contracts"][contract_type]
 			contract_name = contract_data["name"]
+			field_symbol = "✅" if contract_data["passed"] else "❌"
 			if contract_name == "-":
 				continue
 			elif contract_name == "PLEASE SELECT":
 				contract_name = f"__**{contract_name}**__"
+				field_symbol = "⚠️"
 
 			if contract_data["passed"] == True:
 				contracts_passed += 1
 
-			contracts_embed.add_field(name=f"{contract_type} {"✅" if contract_data["passed"] else "❌"}", value=contract_name, inline=True)
+			contracts_embed.add_field(name=f"{contract_type} {field_symbol}", value=contract_name, inline=True)
 		contracts_embed.title = f"Contracts ({contracts_passed}/{len(contract_user["contracts"].keys())})"
-		
 
 		await ctx.respond(embed=contracts_embed, ephemeral=is_ephemeral)
 
@@ -164,11 +176,21 @@ class Contracts(commands.Cog):
 		season_stats = contract_database["stats"]
 		embed = discord.Embed(title="Contracts Winter 2025", color=NATSUMIN_EMBED_COLOR)
 		embed.description = (
+			f"Season ending on **<t:1746943200:D>** at **<t:1746943200:t>**\n" +
 			f"Users passed: {season_stats["users_passed"]}/{season_stats["users"]} ({get_percentage(season_stats["users_passed"],season_stats["users"])}%)\n" +
 			f"Contracts passed: {season_stats["contracts_passed"]}/{season_stats["contracts"]} ({get_percentage(season_stats["contracts_passed"],season_stats["contracts"])}%)"
 		)
-		last_updated_datetime = datetime.datetime.fromtimestamp(last_updated_timestamp)
-		embed.set_footer(text=f"Database last updated on {last_updated_datetime.strftime("%d/%m/%Y, %H:%M")} UTC", icon_url="https://cdn.discordapp.com/emojis/998705274074435584.webp?size=4096")
+		last_updated_datetime = datetime.datetime.fromtimestamp(last_updated_timestamp, datetime.UTC)
+		next_update_datetime = last_updated_datetime + datetime.timedelta(hours=CACHE_DURATION)
+		current_datetime = datetime.datetime.now(datetime.UTC)
+		difference = next_update_datetime - current_datetime
+		difference_seconds = max(difference.total_seconds(), 0)
+		hours, remainder = divmod(difference_seconds, 3600)
+		minutes, seconds = divmod(remainder, 60)
+		embed.set_footer(
+			text=f"Data updating in {int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}",
+			icon_url="https://cdn.discordapp.com/emojis/998705274074435584.webp?size=4096"
+		)
 		for contract_type in season_stats["contract_types"]:
 			type_stats = season_stats["contract_types"][contract_type]
 			embed.add_field(name=f"{contract_type} ({get_percentage(type_stats[0], type_stats[1])}%)", value=f"{type_stats[0]}/{type_stats[1]}")

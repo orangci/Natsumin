@@ -4,101 +4,50 @@ import requests
 import datetime
 import math
 from globals import *
+from contracts_database import *
+from typing import Optional
 from mezmorize import Cache
 from discord.ext import commands
 from discord.commands import slash_command
 
 SPREADSHEET_ID = "19aueoNx6BBU6amX7DhKGU8kHVauHWcSGiGKMzFSGkGc"
-GET_SHEET_DATA_URL = f"https://sheets.googleapis.com/v4/spreadsheets/{SPREADSHEET_ID}/values/Dashboard!A2%3AU394"
+GET_SHEET_DATA_URL = f"https://sheets.googleapis.com/v4/spreadsheets/{SPREADSHEET_ID}/values:batchGet"
 
-CACHE_DURATION = 6
+SHEET_DATA_CACHE_HOURS = 6
+SHEET_DATA_CACHE_DURATION = SHEET_DATA_CACHE_HOURS * 60 * 60
 
-cache = Cache(CACHE_TYPE='filesystem', CACHE_DIR='cache', CACHE_DEFAULT_TIMEOUT=CACHE_DURATION * 60 * 60)
-
-ROW_NAMES = {
-	0: "Base Contract",
-	1: "Challenge Contract",
-	2: "Veteran Special",
-	3: "Movie Special",
-	4: "VN Special",
-	5: "Indie Special",
-	6: "Extreme Special",
-	7: "Base Buddy",
-	8: "Challenge Buddy"
-}
+cache = Cache(CACHE_TYPE='filesystem', CACHE_DIR='cache', CACHE_DEFAULT_TIMEOUT=1 * 60 * 60)
 
 def get_percentage(num: float, total: float) -> int:
 	return math.floor(100 * float(num)/float(total))
 
-def convert_sheet_to_database(sheet_data) -> ContractsDatabase:
-	rows: list[list[str]] = sheet_data['values']
+def _get_member_from_username(bot: commands.Bot, username: str) -> Optional[int]:
+	"""Get the user ID from the username"""
+	for member in bot.get_all_members():
+		if member.name.lower() == username.lower():
+			return member
+	return None
 
-	final_data = {
-		"users": {}
-	}
-	total_contracts = 0
-	total_contracts_passed = 0
-	users_passed = 0
-	per_contract_stats: dict[str, list[int]] = {
-		"Base Contract": [0, 0],
-		"Challenge Contract": [0, 0],
-		"Veteran Special": [0, 0],
-		"Movie Special": [0, 0],
-		"VN Special": [0, 0],
-		"Indie Special": [0, 0],
-		"Extreme Special": [0, 0],
-		"Base Buddy": [0, 0],
-		"Challenge Buddy": [0, 0]
-	}
+async def get_contract_usernames(ctx: discord.AutocompleteContext): 
+	contracts_database, _ = _get_sheet_data_and_update()
+	matching: list[str] = [username.lower() for username in contracts_database["users"].keys() if ctx.value.strip().lower() in username.lower()]
+	return matching
 
-	for row in rows:
-		status = row[0]
-		username = row[1]
-		contract_names = row[2:11]
-		contract_passed = row[12:21]
-
-		contracts = {}
-
-		for i in range(len(contract_names)):
-			row_name = ROW_NAMES[i]
-			row_content = contract_names[i]
-
-			if row_content == "-":
-				continue
-
-			total_contracts += 1
-			per_contract_stats[row_name][1] += 1
-			passed_contract = True if len(contract_passed) > i and contract_passed[i] == "PASSED" else False
-			if passed_contract:
-				total_contracts_passed += 1
-				per_contract_stats[row_name][0] += 1
-
-			contracts[row_name] = {"name": row_content, "passed": passed_contract}
-
-		user_passed_contracts = True if status == "P" else False
-		if user_passed_contracts:
-			users_passed += 1
-
-		final_data["users"][username.lower()] = {
-			"status": "PASSED" if status == "P" else "FAILED" if status == "F" else status,
-			"contracts": contracts
-		}
-	
-	final_data["stats"] = {
-		"users": len(final_data["users"]),
-		"users_passed": users_passed,
-		"contracts": total_contracts,
-		"contracts_passed": total_contracts_passed,
-		"contract_types": per_contract_stats
-	}
-	
-	return final_data
-
-@cache.memoize()
+@cache.memoize(timeout=SHEET_DATA_CACHE_DURATION)
 def _get_sheet_data_and_update() -> tuple[ContractsDatabase, float]:
 	response = requests.get(GET_SHEET_DATA_URL, {
 		"majorDimension": "ROWS",
 		"valueRenderOption": "FORMATTED_VALUE",
+		"ranges": [
+			"Dashboard!A2:U394",
+			"Base!A2:AG394",
+			"Veteran Special!A2:I167",
+			"VN Special!A2:G126",
+			"Movie Special!A2:H243",
+			"Indie Special!A2:H136",
+			"Extreme Special!A2:G95",
+			"Buddying!B2:N68"
+		],
 		"key": os.getenv("GOOGLE_API_KEY")
 	})
 
@@ -121,14 +70,18 @@ class Contracts(commands.Cog):
 	async def get(
 		self, 
 		ctx: discord.ApplicationContext, 
-		user: discord.Option(discord.User, description="User to check contract's of", required=False), # type: ignore
+		username: discord.Option(str, name="username", description="User to check", required=False, autocomplete=get_contract_usernames), # type: ignore
 		is_ephemeral: discord.Option(bool, name="hidden", description="Whether you want the response only visible to you", default=False) # type: ignore
 		):
-		if user is None:
+		user: discord.Member = None
+		if username is None:
 			user = ctx.author
+			username = ctx.author.name
+		else:
+			user = _get_member_from_username(self.bot, username)
 
 		contract_database, last_updated_timestamp = _get_sheet_data_and_update()
-		contract_user = contract_database["users"].get(user.name, None)
+		contract_user = contract_database["users"].get(username, None)
 		if not contract_user:
 			not_found_embed = discord.Embed(title="Contracts", color=discord.Color.red(), description="User not found! If this is a mistake please ping <@546659584727580692>")
 			await ctx.respond(embed=not_found_embed, ephemeral=True)
@@ -136,9 +89,13 @@ class Contracts(commands.Cog):
 
 		contracts_passed = 0
 		contracts_embed = discord.Embed(color=NATSUMIN_EMBED_COLOR)
-		contracts_embed.set_author(name=f"{user.name}{f" [{contract_user["status"]}]" if contract_user["status"].strip() != "" else ""}", icon_url=user.display_avatar.url)
+		contracts_embed.set_author(
+			name=f"{username}{f" [{contract_user["status"]}]" if contract_user["status"].strip() != "" else ""}",
+			icon_url=user.display_avatar.url if user else None,
+			url=contract_user["list_url"] if contract_user["list_url"] != "" else None
+		)
 		last_updated_datetime = datetime.datetime.fromtimestamp(last_updated_timestamp, datetime.UTC)
-		next_update_datetime = last_updated_datetime + datetime.timedelta(hours=CACHE_DURATION)
+		next_update_datetime = last_updated_datetime + datetime.timedelta(hours=SHEET_DATA_CACHE_HOURS)
 		current_datetime = datetime.datetime.now(datetime.UTC)
 		difference = next_update_datetime - current_datetime
 		difference_seconds = max(difference.total_seconds(), 0)
@@ -181,7 +138,7 @@ class Contracts(commands.Cog):
 			f"Contracts passed: {season_stats["contracts_passed"]}/{season_stats["contracts"]} ({get_percentage(season_stats["contracts_passed"],season_stats["contracts"])}%)"
 		)
 		last_updated_datetime = datetime.datetime.fromtimestamp(last_updated_timestamp, datetime.UTC)
-		next_update_datetime = last_updated_datetime + datetime.timedelta(hours=CACHE_DURATION)
+		next_update_datetime = last_updated_datetime + datetime.timedelta(hours=SHEET_DATA_CACHE_HOURS)
 		current_datetime = datetime.datetime.now(datetime.UTC)
 		difference = next_update_datetime - current_datetime
 		difference_seconds = max(difference.total_seconds(), 0)
@@ -196,6 +153,55 @@ class Contracts(commands.Cog):
 			embed.add_field(name=f"{contract_type} ({get_percentage(type_stats[0], type_stats[1])}%)", value=f"{type_stats[0]}/{type_stats[1]}")
 		
 		await ctx.respond(embed=embed, ephemeral=is_ephemeral)
+
+	@contracts_group.command(name="user", description="Get contracts user info")
+	async def user(
+		self, 
+		ctx: discord.ApplicationContext, 
+		username: discord.Option(str, name="username", description="User to check", required=False, autocomplete=get_contract_usernames), # type: ignore
+		is_ephemeral: discord.Option(bool, name="hidden", description="Whether you want the response only visible to you", default=False) # type: ignore
+	):
+		user: discord.Member = None
+		if username is None:
+			user = ctx.author
+			username = ctx.author.name
+		else:
+			user = _get_member_from_username(self.bot, username)
+	
+		contract_database, last_updated_timestamp = _get_sheet_data_and_update()
+		contract_user = contract_database["users"].get(username, None)
+		if not contract_user:
+			not_found_embed = discord.Embed(title="User Info", color=discord.Color.red(), description="User not found! If this is a mistake please ping <@546659584727580692>")
+			await ctx.respond(embed=not_found_embed, ephemeral=True)
+			return
+
+		contracts_embed = discord.Embed(color=NATSUMIN_EMBED_COLOR)
+		contracts_embed.set_author(
+			name=f"{username}{f" [{contract_user["status"]}]" if contract_user["status"].strip() != "" else ""}",
+			icon_url=user.display_avatar.url if user else None,
+			url=contract_user["list_url"] if contract_user["list_url"] != "" else None
+		)
+		last_updated_datetime = datetime.datetime.fromtimestamp(last_updated_timestamp, datetime.UTC)
+		next_update_datetime = last_updated_datetime + datetime.timedelta(hours=SHEET_DATA_CACHE_HOURS)
+		current_datetime = datetime.datetime.now(datetime.UTC)
+		difference = next_update_datetime - current_datetime
+		difference_seconds = max(difference.total_seconds(), 0)
+		hours, remainder = divmod(difference_seconds, 3600)
+		minutes, seconds = divmod(remainder, 60)
+		contracts_embed.set_footer(
+			text=f"Data updating in {int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}",
+			icon_url="https://cdn.discordapp.com/emojis/998705274074435584.webp?size=4096"
+		)
+
+		contracts_embed.description = (
+			f"**Rep**: {contract_user["rep"]}\n" +
+			f"**Contractor**: {contract_user["contractor"]}\n" +
+			(f"**List**: {contract_user["list_url"]}" if contract_user["list_url"] != "" else "")
+		)
+		contracts_embed.add_field(name="Preferences", value=contract_user["preferences"], inline=True)
+		contracts_embed.add_field(name="Bans", value=contract_user["bans"], inline=True)
+
+		await ctx.respond(embed=contracts_embed, ephemeral=is_ephemeral)
 
 	@commands.command()
 	@commands.is_owner()

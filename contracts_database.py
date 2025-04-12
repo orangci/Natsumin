@@ -4,6 +4,7 @@ import re
 class ContractData(TypedDict):
 	name: str
 	passed: bool
+	contractor: str
 	status: str
 	progress: str
 	rating: str
@@ -139,24 +140,134 @@ def _get_basechallenge_data(cur_database: ContractsDatabase, sheet_data) -> Cont
 		cur_user_data["accepting_manhwa"] = True if row[18] == "Yes" else False
 		cur_user_data["accepting_ln"] = True if row[19] == "Yes" else False
 
-		cur_user_data["contracts"]["Base Contract"]["status"] = row[0]
-		cur_user_data["contracts"]["Base Contract"]["progress"] = row[29].replace("\n", "") if len(row) > 29 else "0/0"
-		cur_user_data["contracts"]["Base Contract"]["rating"] = row[26]
-		cur_user_data["contracts"]["Base Contract"]["review_url"] = _get_first_url(row[31] if len(row) > 31 else "")
-		cur_user_data["contracts"]["Base Contract"]["medium"] = row[9]
+		base_contract = cur_user_data["contracts"]["Base Contract"]
+		base_contract["contractor"] = contractor
+		base_contract["status"] = row[0]
+		base_contract["progress"] = row[29].replace("\n", "") if len(row) > 29 and row[29] != "" else "?/?"
+		base_contract["rating"] = row[26]
+		base_contract["review_url"] = _get_first_url(row[31] if len(row) > 31 else "")
+		base_contract["medium"] = row[9]
 		if "Challenge Contract" in cur_user_data["contracts"]:
-			cur_user_data["contracts"]["Challenge Contract"]["status"] = row[1]
-			cur_user_data["contracts"]["Challenge Contract"]["progress"] = row[30] if len(row) > 30 else "0/0"
-			cur_user_data["contracts"]["Challenge Contract"]["rating"] = row[28]
-			cur_user_data["contracts"]["Challenge Contract"]["review_url"] = _get_first_url(row[32] if len(row) > 32 else "")
-			cur_user_data["contracts"]["Challenge Contract"]["medium"] = row[13]
+			challenge_contract = cur_user_data["contracts"]["Challenge Contract"]
+			challenge_contract["contractor"] = contractor
+			challenge_contract["status"] = row[1]
+			challenge_contract["progress"] = row[30] if len(row) > 30 and row[30] != "" else "?/?"
+			challenge_contract["rating"] = row[28]
+			challenge_contract["review_url"] = _get_first_url(row[32] if len(row) > 32 else "")
+			challenge_contract["medium"] = row[13]
 	
+	return cur_database
+
+def _get_specials_data(cur_database: ContractsDatabase, sheet_data) -> ContractsDatabase:
+
+	# Veteran Special Sheet
+	rows: list[list[str]] = sheet_data["valueRanges"][2]["values"]
+
+	for row in rows:
+		username = row[2].lower()
+		if username not in cur_database["users"]:
+			continue
+		cur_user_data = cur_database["users"][username]
+		veteran_special = cur_user_data["contracts"]["Veteran Special"]
+		veteran_special["status"] = row[5]
+		veteran_special["progress"] = row[6] if len(row) > 6 and row[6] != "" else "?/?"
+		veteran_special["rating"] = row[7]
+		veteran_special["review_url"] = _get_first_url(row[8]) if len(row) > 8 else ""
+		veteran_special["contractor"] = row[4].lower()
+		veteran_special["medium"] = re.sub(CONTRACT_NAME_MEDIUM_REGEX, r"\2", row[3])
+	
+	# VN Special Sheet
+	rows: list[list[str]] = sheet_data["valueRanges"][3]["values"]
+	for row in rows:
+		username = row[2].lower()
+		if username not in cur_database["users"]:
+			continue
+		cur_user_data = cur_database["users"][username]
+		vn_special = cur_user_data["contracts"]["VN Special"]
+		vn_special["status"] = row[0]
+		vn_special["progress"] = "Completed" if row[0] == "PASSED" else "Not Completed"
+		vn_special["rating"] = row[5]
+		vn_special["review_url"] = _get_first_url(row[6]) if len(row) > 6 else ""
+		vn_special["contractor"] = row[4].lower()
+		vn_special["medium"] = "VN"
+	
+	# Movie Special Sheet
+	rows: list[list[str]] = sheet_data["valueRanges"][4]["values"]
+	for row in rows:
+		username = row[2].lower()
+		if username not in cur_database["users"]:
+			continue
+		cur_user_data = cur_database["users"][username]
+		movie_special = cur_user_data["contracts"]["Movie Special"]
+		movie_special["status"] = row[0]
+		movie_special["progress"] = "Completed" if row[0] == "PASSED" else "Not Completed"
+		movie_special["rating"] = row[5]
+		movie_special["review_url"] = _get_first_url(row[6]) if len(row) > 6 else ""
+		movie_special["contractor"] = row[4].lower()
+		movie_special["medium"] = "Movie"
+	
+	# Indie Special Sheet
+	rows: list[list[str]] = sheet_data["valueRanges"][5]["values"]
+	for row in rows:
+		username = row[2].lower()
+		if username not in cur_database["users"]:
+			continue
+		cur_user_data = cur_database["users"][username]
+		indie_special = cur_user_data["contracts"]["Indie Special"]
+		indie_special["status"] = row[0]
+		indie_special["progress"] = row[5]
+		indie_special["rating"] = row[6]
+		indie_special["review_url"] = _get_first_url(row[7]) if len(row) > 7 else ""
+		indie_special["contractor"] = row[4].lower()
+		indie_special["medium"] = "Game"
+	
+	# Extreme Special Sheet
+	rows: list[list[str]] = sheet_data["valueRanges"][6]["values"]
+	for row in rows:
+		username = row[2].lower()
+		if username not in cur_database["users"]:
+			continue
+		cur_user_data = cur_database["users"][username]
+		extreme_special = cur_user_data["contracts"]["Extreme Special"]
+		extreme_special["status"] = row[0]
+		extreme_special["progress"] = "Completed" if row[0] == "PASSED" else "Not Completed"
+		extreme_special["rating"] = row[5]
+		extreme_special["review_url"] = _get_first_url(row[6]) if len(row) > 6 else ""
+		extreme_special["contractor"] = row[4].lower()
+		extreme_special["medium"] = "Game"
+	
+	# Buddying Sheet
+	rows: list[list[str]] = sheet_data["valueRanges"][7]["values"]
+	for row in rows:
+		username = row[2].lower()
+		if username not in cur_database["users"]:
+			continue
+		
+		cur_user_data = cur_database["users"][username]
+		if "Base Buddy" in cur_user_data["contracts"]:
+			buddy_base = cur_user_data["contracts"]["Base Buddy"]
+			buddy_base["status"] = row[0]
+			buddy_base["contractor"] = row[4].lower()
+			buddy_base["progress"] = row[8] if row[8] != "" else "?/?"
+			buddy_base["rating"] = row[10]
+			buddy_base["review_url"] = _get_first_url(row[12]) if len(row) > 12 else ""
+			buddy_base["medium"] = "Anime / Manga"
+		if "Challenge Buddy" in cur_user_data["contracts"]:
+			buddy_challenge = cur_user_data["contracts"]["Challenge Buddy"]
+			buddy_challenge["status"] = row[1]
+			buddy_challenge["contractor"] = row[6].lower()
+			buddy_challenge["progress"] = row[9] if row[9] != "" else "?/?"
+			buddy_challenge["rating"] = row[11]
+			buddy_challenge["review_url"] = _get_first_url(row[13]) if len(row) > 13 else ""
+			buddy_challenge["medium"] = "Anime / Manga"
+
 	return cur_database
 
 def convert_sheet_to_database(sheet_data) -> ContractsDatabase:
 	final_database = {}
 	dashboard_database = _get_dashboard_data(sheet_data) # Initial data from the dashboard
 	basechallenge_database = _get_basechallenge_data(dashboard_database, sheet_data) # Base and challenge data
+	specials_database = _get_specials_data(basechallenge_database, sheet_data) # Specials data
 
-	final_database = basechallenge_database
+	final_database = specials_database
 	return final_database

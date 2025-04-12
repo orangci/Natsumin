@@ -29,7 +29,7 @@ class Other(commands.Cog):
 			await ctx.respond(content=f"This command is currently on cooldown! Please retry in **{error.retry_after:.2f}** seconds!", ephemeral=True)
 		else:
 			embed = discord.Embed(description=error,color=discord.Color.red())
-			embed.title = f"An unexpected error occured when trying to run </{ctx.command.qualified_name}:{ctx.command.qualified_id}>"
+			embed.title = f"An unexpected error occured when trying to run /{ctx.command.qualified_name}"
 			embed.set_footer(text=f"Requested by @{ctx.author.name}", icon_url=ctx.author.display_avatar.url)
 			await ctx.respond(embed=embed, ephemeral=True)
 

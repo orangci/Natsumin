@@ -77,6 +77,19 @@ def _get_base_embed(timestamp: float, username: str = "", contract_user: Optiona
 	)
 	return embed
 
+class DeleteMessageView(discord.ui.View):
+	def __init__(self, timeout: Optional[float] = 300, user_id: Optional[int] = None):
+		super().__init__(timeout=timeout)
+		self.user_id = user_id
+
+	@discord.ui.button(label="Delete", style=discord.ButtonStyle.red)
+	async def delete(self, button: discord.ui.Button, interaction: discord.Interaction):
+		if self.user_id and interaction.user.id != self.user_id:
+			await interaction.response.send_message("You can't delete this message!", ephemeral=True)
+			return
+		await interaction.response.edit_message(view=None)
+		await interaction.delete_original_response()
+
 class Contracts(commands.Cog):
 	def __init__(self, bot: commands.Bot):
 		self.bot = bot
@@ -258,9 +271,11 @@ class Contracts(commands.Cog):
 	@commands.is_owner()
 	async def get_database(self, ctx: commands.Context):
 		contract_database, _ = _get_sheet_data_and_update()
-		with open("database.json", "w") as f:
-			json.dump(contract_database, f, indent=4)
-		await ctx.reply("Database now uploaded at ``database.json``",delete_after=3)
+		
+		database_file = discord.File(io.BytesIO(json.dumps(contract_database, indent=4).encode("utf-8")))
+		database_file.filename = "database.json"
+		expire_datetime = datetime.datetime.now(datetime.UTC) + datetime.timedelta(seconds=30)
+		await ctx.reply(content=f"Message will expire <t:{int(expire_datetime.timestamp())}:R>", file=database_file, view=DeleteMessageView(30, ctx.author.id), delete_after=30)
 
 	@commands.command()
 	@commands.is_owner()
@@ -308,7 +323,8 @@ class Contracts(commands.Cog):
 			mentions_file = discord.File(io.BytesIO("\n".join([f"<@{userid}>" for userid in pending_ids]).encode("utf-8")))
 			mentions_file.filename = "mentions.txt"
 
-		await ctx.reply(files=[usernames_file, mentions_file] if len(pending_ids) != 0 else [usernames_file])
+		expire_datetime = datetime.datetime.now(datetime.UTC) + datetime.timedelta(seconds=300)
+		await ctx.reply(content=f"Message will expire <t:{int(expire_datetime.timestamp())}:R>", files=[usernames_file, mentions_file] if len(pending_ids) != 0 else [usernames_file], view=DeleteMessageView(300, ctx.author.id), delete_after=300)
 
 def setup(bot:commands.Bot):
 	bot.add_cog(Contracts(bot))

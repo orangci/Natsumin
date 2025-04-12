@@ -9,7 +9,7 @@ from contracts_database import *
 from typing import Optional
 from mezmorize import Cache
 from discord.ext import commands
-from discord.commands import slash_command
+from discord.commands import slash_command, user_command
 
 SPREADSHEET_ID = "19aueoNx6BBU6amX7DhKGU8kHVauHWcSGiGKMzFSGkGc"
 GET_SHEET_DATA_URL = f"https://sheets.googleapis.com/v4/spreadsheets/{SPREADSHEET_ID}/values:batchGet"
@@ -23,7 +23,6 @@ def get_percentage(num: float, total: float) -> int:
 	return math.floor(100 * float(num)/float(total))
 
 def _get_member_from_username(bot: commands.Bot, username: str) -> Optional[discord.Member]:
-	"""Get the user ID from the username"""
 	for member in bot.get_all_members():
 		if member.name.lower() == username.lower():
 			return member
@@ -57,6 +56,27 @@ def _get_sheet_data_and_update() -> tuple[ContractsDatabase, float]:
 	else:
 		print("RESPONSE FAILED:", response.status_code, response.json())
 
+def _get_base_embed(timestamp: float, username: str = "", contract_user: Optional[ContractsUser] = None, user: Optional[discord.User] = None) -> discord.Embed:
+	embed = discord.Embed(color=NATSUMIN_EMBED_COLOR)
+	if contract_user:
+		embed.set_author(
+			name=f"{username}{f" [{contract_user["status"]}]" if contract_user["status"].strip() != "" else ""}",
+			icon_url=user.display_avatar.url if user else None,
+			url=contract_user["list_url"] if contract_user["list_url"] != "" else None
+		)
+	last_updated_datetime = datetime.datetime.fromtimestamp(timestamp, datetime.UTC)
+	next_update_datetime = last_updated_datetime + datetime.timedelta(hours=SHEET_DATA_CACHE_HOURS)
+	current_datetime = datetime.datetime.now(datetime.UTC)
+	difference = next_update_datetime - current_datetime
+	difference_seconds = max(difference.total_seconds(), 0)
+	hours, remainder = divmod(difference_seconds, 3600)
+	minutes, seconds = divmod(remainder, 60)
+	embed.set_footer(
+		text=f"Data updating in {int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}",
+		icon_url="https://cdn.discordapp.com/emojis/998705274074435584.webp?size=4096"
+	)
+	return embed
+
 class Contracts(commands.Cog):
 	def __init__(self, bot: commands.Bot):
 		self.bot = bot
@@ -89,23 +109,7 @@ class Contracts(commands.Cog):
 			return
 
 		contracts_passed = 0
-		contracts_embed = discord.Embed(color=NATSUMIN_EMBED_COLOR)
-		contracts_embed.set_author(
-			name=f"{username}{f" [{contract_user["status"]}]" if contract_user["status"].strip() != "" else ""}",
-			icon_url=user.display_avatar.url if user else None,
-			url=contract_user["list_url"] if contract_user["list_url"] != "" else None
-		)
-		last_updated_datetime = datetime.datetime.fromtimestamp(last_updated_timestamp, datetime.UTC)
-		next_update_datetime = last_updated_datetime + datetime.timedelta(hours=SHEET_DATA_CACHE_HOURS)
-		current_datetime = datetime.datetime.now(datetime.UTC)
-		difference = next_update_datetime - current_datetime
-		difference_seconds = max(difference.total_seconds(), 0)
-		hours, remainder = divmod(difference_seconds, 3600)
-		minutes, seconds = divmod(remainder, 60)
-		contracts_embed.set_footer(
-			text=f"Data updating in {int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}",
-			icon_url="https://cdn.discordapp.com/emojis/998705274074435584.webp?size=4096"
-		)
+		contracts_embed = _get_base_embed(last_updated_timestamp, username, contract_user, user)
 		for contract_type in contract_user["contracts"]:
 			contract_data = contract_user["contracts"][contract_type]
 			contract_name = contract_data["name"]
@@ -132,22 +136,12 @@ class Contracts(commands.Cog):
 	):
 		contract_database, last_updated_timestamp = _get_sheet_data_and_update()
 		season_stats = contract_database["stats"]
-		embed = discord.Embed(title="Contracts Winter 2025", color=NATSUMIN_EMBED_COLOR)
+		embed = _get_base_embed(last_updated_timestamp)
+		embed.title = "Contracts Winter 2025"
 		embed.description = (
 			f"Season ending on **<t:1746943200:D>** at **<t:1746943200:t>**\n" +
 			f"Users passed: {season_stats["users_passed"]}/{season_stats["users"]} ({get_percentage(season_stats["users_passed"],season_stats["users"])}%)\n" +
 			f"Contracts passed: {season_stats["contracts_passed"]}/{season_stats["contracts"]} ({get_percentage(season_stats["contracts_passed"],season_stats["contracts"])}%)"
-		)
-		last_updated_datetime = datetime.datetime.fromtimestamp(last_updated_timestamp, datetime.UTC)
-		next_update_datetime = last_updated_datetime + datetime.timedelta(hours=SHEET_DATA_CACHE_HOURS)
-		current_datetime = datetime.datetime.now(datetime.UTC)
-		difference = next_update_datetime - current_datetime
-		difference_seconds = max(difference.total_seconds(), 0)
-		hours, remainder = divmod(difference_seconds, 3600)
-		minutes, seconds = divmod(remainder, 60)
-		embed.set_footer(
-			text=f"Data updating in {int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}",
-			icon_url="https://cdn.discordapp.com/emojis/998705274074435584.webp?size=4096"
 		)
 		for contract_type in season_stats["contract_types"]:
 			type_stats = season_stats["contract_types"][contract_type]
@@ -176,24 +170,7 @@ class Contracts(commands.Cog):
 			await ctx.respond(embed=not_found_embed, ephemeral=True)
 			return
 
-		contracts_embed = discord.Embed(color=NATSUMIN_EMBED_COLOR)
-		contracts_embed.set_author(
-			name=f"{username}{f" [{contract_user["status"]}]" if contract_user["status"].strip() != "" else ""}",
-			icon_url=user.display_avatar.url if user else None,
-			url=contract_user["list_url"] if contract_user["list_url"] != "" else None
-		)
-		last_updated_datetime = datetime.datetime.fromtimestamp(last_updated_timestamp, datetime.UTC)
-		next_update_datetime = last_updated_datetime + datetime.timedelta(hours=SHEET_DATA_CACHE_HOURS)
-		current_datetime = datetime.datetime.now(datetime.UTC)
-		difference = next_update_datetime - current_datetime
-		difference_seconds = max(difference.total_seconds(), 0)
-		hours, remainder = divmod(difference_seconds, 3600)
-		minutes, seconds = divmod(remainder, 60)
-		contracts_embed.set_footer(
-			text=f"Data updating in {int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}",
-			icon_url="https://cdn.discordapp.com/emojis/998705274074435584.webp?size=4096"
-		)
-
+		contracts_embed = _get_base_embed(last_updated_timestamp, username, contract_user, user)
 		contracts_embed.description = (
 			f"**Rep**: {contract_user["rep"]}\n" +
 			f"**Contractor**: {contract_user["contractor"]}\n" +
@@ -222,39 +199,20 @@ class Contracts(commands.Cog):
 		contract_database, last_updated_timestamp = _get_sheet_data_and_update()
 		contract_user = contract_database["users"].get(username, None)
 		if not contract_user:
-			not_found_embed = discord.Embed(title="User Info", color=discord.Color.red(), description="User not found! If this is a mistake please ping <@546659584727580692>")
+			not_found_embed = discord.Embed(color=discord.Color.red(), description="User not found! If this is a mistake please ping <@546659584727580692>")
 			await ctx.respond(embed=not_found_embed, ephemeral=True)
 			return
 
 		if contract_type not in contract_user["contracts"]:
-			not_found_embed = discord.Embed(title="User Info", color=discord.Color.red(), description="Contract not found! If this is a mistake please ping <@546659584727580692>")
+			not_found_embed = discord.Embed(color=discord.Color.red(), description="Contract not found! If this is a mistake please ping <@546659584727580692>")
 			await ctx.respond(embed=not_found_embed, ephemeral=True)
 			return
 		
 		contract_data = contract_user["contracts"][contract_type]
 
-		contracts_embed = discord.Embed(
-			title=contract_type, 
-			url=contract_data["review_url"] if contract_data["review_url"] != "" else None, 
-			color=NATSUMIN_EMBED_COLOR
-		)
-		contracts_embed.set_author(
-			name=f"{username}{f" [{contract_user["status"]}]" if contract_user["status"].strip() != "" else ""}",
-			icon_url=user.display_avatar.url if user else None,
-			url=contract_user["list_url"] if contract_user["list_url"] != "" else None
-		)
-		last_updated_datetime = datetime.datetime.fromtimestamp(last_updated_timestamp, datetime.UTC)
-		next_update_datetime = last_updated_datetime + datetime.timedelta(hours=SHEET_DATA_CACHE_HOURS)
-		current_datetime = datetime.datetime.now(datetime.UTC)
-		difference = next_update_datetime - current_datetime
-		difference_seconds = max(difference.total_seconds(), 0)
-		hours, remainder = divmod(difference_seconds, 3600)
-		minutes, seconds = divmod(remainder, 60)
-		contracts_embed.set_footer(
-			text=f"Data updating in {int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}",
-			icon_url="https://cdn.discordapp.com/emojis/998705274074435584.webp?size=4096"
-		)
-
+		contracts_embed = _get_base_embed(last_updated_timestamp, username, contract_user, user)
+		contracts_embed.title = contract_type
+		contracts_embed.url = contract_data["review_url"] if contract_data["review_url"] != "" else None
 		contracts_embed.description = (
 			f"**Name**: {contract_data["name"]}\n" +
 			f"**Medium**: {contract_data["medium"]}\n" +
@@ -266,6 +224,35 @@ class Contracts(commands.Cog):
 		contracts_embed.add_field(name="Progress", value=contract_data["progress"], inline=True)
 		
 		await ctx.respond(embed=contracts_embed, ephemeral=is_ephemeral)
+
+	@user_command(name="Get Contracts", guild_ids=config["debug_servers"])
+	async def user_command_get(self, ctx: discord.ApplicationContext, user: discord.User):
+		contract_database, last_updated_timestamp = _get_sheet_data_and_update()
+		contract_user = contract_database["users"].get(user.name, None)
+		if not contract_user:
+			not_found_embed = discord.Embed(title="Contracts", color=discord.Color.red(), description="User not found! If this is a mistake please ping <@546659584727580692>")
+			await ctx.respond(embed=not_found_embed, ephemeral=True)
+			return
+		
+		contracts_passed = 0
+		contracts_embed = _get_base_embed(last_updated_timestamp, user.name, contract_user, user)
+		for contract_type in contract_user["contracts"]:
+			contract_data = contract_user["contracts"][contract_type]
+			contract_name = contract_data["name"]
+			field_symbol = "✅" if contract_data["passed"] else "❌"
+			if contract_name == "-":
+				continue
+			elif contract_name == "PLEASE SELECT":
+				contract_name = f"__**{contract_name}**__"
+				field_symbol = "⚠️"
+
+			if contract_data["passed"] == True:
+				contracts_passed += 1
+
+			contracts_embed.add_field(name=f"{contract_type} {field_symbol}", value=contract_name, inline=True)
+		contracts_embed.title = f"Contracts ({contracts_passed}/{len(contract_user["contracts"].keys())})"
+		await ctx.respond(embed=contracts_embed, ephemeral=True)
+
 
 	@commands.command()
 	@commands.is_owner()

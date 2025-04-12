@@ -54,7 +54,7 @@
 					"-",
 					"-",
 					"",
-					"",
+					"PASSED",
 					"",
 					"",
 					"PASSED"
@@ -137,7 +137,7 @@
 					"-",
 					"-",
 					"",
-					"",
+					"PASSED",
 					"PASSED"
 				],
 				[
@@ -895,6 +895,8 @@
 					"PASSED",
 					"PASSED",
 					"",
+					"PASSED",
+					"",
 					"PASSED"
 				],
 				[
@@ -945,7 +947,7 @@
 					"-"
 				],
 				[
-					"",
+					"P",
 					"biabbk",
 					"Ef: A Tale of Memories",
 					"-",
@@ -960,6 +962,7 @@
 					"PASSED",
 					"",
 					"",
+					"PASSED",
 					"PASSED",
 					"PASSED"
 				],
@@ -1044,8 +1047,8 @@
 					"-",
 					"",
 					"PASSED",
-					"",
-					"",
+					"PASSED",
+					"PASSED",
 					"PASSED"
 				],
 				[
@@ -1085,7 +1088,9 @@
 					"-",
 					"-",
 					"-",
-					"-"
+					"-",
+					"",
+					"PASSED"
 				],
 				[
 					"",
@@ -1216,6 +1221,25 @@
 				],
 				[
 					"",
+					"caocaodrowning",
+					"Talentless Nana (Anime)",
+					"Violet Evergarden (Anime)",
+					"Summer Time Rendering (Anime)",
+					"The Tunnel to Summer",
+					"FMD Muramasa",
+					"-",
+					"PICAYUNE DREAMS",
+					"-",
+					"-",
+					"",
+					"",
+					"",
+					"",
+					"",
+					"PASSED"
+				],
+				[
+					"",
 					"catrina72",
 					"Bocchi The Rock! (Anime)",
 					"Alya Sometimes Hides Her Feelings in Russian (Anime)",
@@ -1267,7 +1291,7 @@
 					"-"
 				],
 				[
-					"",
+					"P",
 					"chunny0471_13573",
 					"Plastic Memories (Anime)",
 					"The Future Diary (Anime)",
@@ -1279,6 +1303,7 @@
 					"-",
 					"-",
 					"",
+					"PASSED",
 					"PASSED"
 				],
 				[
@@ -1522,7 +1547,7 @@
 					"",
 					"",
 					"",
-					"",
+					"PASSED",
 					"PASSED"
 				],
 				[
@@ -1556,7 +1581,7 @@
 					"",
 					"",
 					"PASSED",
-					"",
+					"PASSED",
 					"PASSED"
 				],
 				[
@@ -1587,7 +1612,7 @@
 					"",
 					"PASSED",
 					"",
-					"",
+					"PASSED",
 					"PASSED"
 				],
 				[
@@ -1631,7 +1656,9 @@
 					"-",
 					"-",
 					"-",
-					"-"
+					"-",
+					"",
+					"PASSED"
 				],
 				[
 					"",
@@ -1868,7 +1895,9 @@
 					"-",
 					"-",
 					"-",
-					"-"
+					"-",
+					"",
+					"PASSED"
 				],
 				[
 					"",
@@ -1992,25 +2021,6 @@
 					"-",
 					"-",
 					"-"
-				],
-				[
-					"",
-					"galooom",
-					"Talentless Nana (Anime)",
-					"Violet Evergarden (Anime)",
-					"Summer Time Rendering (Anime)",
-					"The Tunnel to Summer",
-					"FMD Muramasa",
-					"-",
-					"PICAYUNE DREAMS",
-					"-",
-					"-",
-					"",
-					"",
-					"",
-					"",
-					"",
-					"PASSED"
 				],
 				[
 					"",
@@ -2596,7 +2606,7 @@
 					"",
 					"PASSED",
 					"PASSED",
-					"",
+					"PASSED",
 					"",
 					"PASSED",
 					"PASSED"
@@ -2628,6 +2638,13 @@
 					"Pluto (Anime)",
 					"",
 					"PASSED",
+					"PASSED",
+					"",
+					"",
+					"",
+					"",
+					"",
+					"",
 					"PASSED"
 				],
 				[
@@ -3127,7 +3144,7 @@
 				],
 				[
 					"",
-					"malachi204",
+					"malathelad",
 					"The Fragrant Flower Blooms with Dignity (Manga)",
 					"Persona 5 Royal (Game)",
 					"-",
@@ -3718,7 +3735,9 @@
 					"-",
 					"-",
 					"Steins;Gate (Anime)",
-					"Log Horizon (Anime)"
+					"Log Horizon (Anime)",
+					"",
+					"PASSED"
 				],
 				[
 					"",
@@ -3869,7 +3888,7 @@
 					"Mobile Suit Gundam Unicorn (Anime) ",
 					"-",
 					"",
-					"",
+					"PASSED",
 					"PASSED",
 					"",
 					"PASSED",
@@ -4180,7 +4199,7 @@
 					"Spirit Circle (Manga)",
 					"Ever17 - The Out of Infinity (Game)",
 					"Tamayura: Hitotose (Anime)",
-					"PLEASE SELECT",
+					"The Tunnel to Summer",
 					"-",
 					"-",
 					"-",
@@ -4406,6 +4425,11 @@
 					"-",
 					"",
 					"PASSED",
+					"PASSED",
+					"",
+					"",
+					"",
+					"",
 					"PASSED"
 				],
 				[
@@ -4430,7 +4454,7 @@
 					"Ys VIII: Lacrimosa of Dana (Game)",
 					"The Textorcist: The Story of Ray Bibbia (Game)",
 					"-",
-					"PLEASE SELECT",
+					"Perfect Blue",
 					"HEAVEN WILL BE MINE",
 					"Thronefall",
 					"PICAYUNE DREAMS",
@@ -4442,6 +4466,7 @@
 					"",
 					"",
 					"",
+					"PASSED",
 					"PASSED"
 				],
 				[
@@ -7443,7 +7468,7 @@
 				],
 				[
 					"PASSED",
-					"",
+					"PASSED",
 					"BOCCHI",
 					"Blurrysink",
 					"\u003c-----",
@@ -7469,11 +7494,12 @@
 					"Short, Average",
 					"Completed",
 					"8/10",
-					"Pending",
-					"0/10",
+					"Completed",
+					"9/10",
 					"24 episodes + OVA",
-					"",
-					"https://discord.com/channels/994071728017899600/1077741836749242468/1343118695072923658"
+					"24 episodes",
+					"https://discord.com/channels/994071728017899600/1077741836749242468/1343118695072923658",
+					"https://discord.com/channels/994071728017899600/1077741836749242468/1359243828837748766"
 				],
 				[
 					"",
@@ -9268,7 +9294,7 @@
 					"FATE",
 					"aboywithadream",
 					"\u003c-----",
-					"galooom",
+					"caocaodrowning",
 					"Please don't give me something depress like punpun or boy abyss",
 					"https://anilist.co/user/blueseadreaming/",
 					"",
@@ -9331,7 +9357,7 @@
 					"",
 					"",
 					"FATE",
-					"galooom",
+					"caocaodrowning",
 					"\u003c-----",
 					"heiyaa",
 					"",
@@ -10045,7 +10071,7 @@
 					"",
 					"Anime, Manga, or Game",
 					"Adachi to Shimamura (Light Novel)",
-					"malachi204",
+					"malathelad",
 					"music, drama, romance(also like BL)",
 					"no bans, open for everything",
 					"Yes",
@@ -10064,7 +10090,7 @@
 					"https://discord.com/channels/994071728017899600/1077741836749242468/1358379922279628872"
 				],
 				[
-					"",
+					"PASSED",
 					"",
 					"Frieren",
 					"_karte_",
@@ -10089,10 +10115,13 @@
 					"Platformers, Puzzles, Visual Novel, Racing, Casual, Metroidvania",
 					"Easy, Medium",
 					"Short",
+					"Completed",
+					"10/10",
 					"Pending",
 					"0/10",
-					"Pending",
-					"0/10"
+					"12/12 (1 season)",
+					"",
+					"https://discord.com/channels/994071728017899600/1077741836749242468/1346788026201669672"
 				],
 				[
 					"",
@@ -10218,7 +10247,7 @@
 					"Anything Goes",
 					"Pending",
 					"0/10",
-					"Pending",
+					"Watching",
 					"0/10"
 				],
 				[
@@ -11146,7 +11175,7 @@
 					"0/10"
 				],
 				[
-					"",
+					"PASSED",
 					"",
 					"Kaoru Hana",
 					"bomite_LXIX",
@@ -11171,13 +11200,16 @@
 					"",
 					"",
 					"",
+					"Completed",
+					"9.5/10",
 					"Pending",
 					"0/10",
-					"Pending",
-					"0/10"
+					"12/12 (1 season)",
+					"",
+					"https://discord.com/channels/994071728017899600/1077741836749242468/1359661653582417920"
 				],
 				[
-					"",
+					"PASSED",
 					"",
 					"Kaoru Hana",
 					"digit1000",
@@ -11202,10 +11234,13 @@
 					"",
 					"",
 					"",
+					"Completed",
+					"7.7/10",
 					"Pending",
 					"0/10",
-					"Pending",
-					"0/10"
+					"24 episodes (1 season)",
+					"",
+					"https://discord.com/channels/994071728017899600/1077741836749242468/1359683098328961045"
 				],
 				[
 					"",
@@ -12165,7 +12200,7 @@
 					"https://discord.com/channels/994071728017899600/1077741836749242468/1346731410647552054"
 				],
 				[
-					"",
+					"PASSED",
 					"PASSED",
 					"Makeine",
 					".centauri.",
@@ -12190,13 +12225,13 @@
 					"Metroidvania",
 					"Hard, Very Hard",
 					"Average",
-					"Pending",
-					"0/10",
+					"Completed",
+					"8/10",
 					"Completed",
 					"10/10",
-					"",
+					"2 movies",
 					"13/13 (1 season)",
-					"",
+					"The Garden of Words & Kiki's Delivery Service - .centauri.'s base contract",
 					"Lycoris Recoil - .centauri.'s challenge contract"
 				],
 				[
@@ -12932,7 +12967,7 @@
 					"Video Games Only*",
 					"FALSE",
 					"Hollow Knight (Game)",
-					"malachi204, ej_sucks",
+					"malathelad, ej_sucks",
 					"Anime or Game",
 					"Lycoris Recoil (Anime)",
 					"",
@@ -14611,7 +14646,7 @@
 					"PASSED",
 					"",
 					"otonari",
-					"malachi204",
+					"malathelad",
 					"\u003c-----",
 					"Cinnamorll",
 					"Hiya. I am a fan of surprises and like to write reviews of series' I've read in my free time. I hope that whatever I'm given will spark something in me to right an in depth review on the story and themes whether it be a game, anime, or manga/LN. Looking forward to working with you..",
@@ -15098,7 +15133,7 @@
 					"0/10"
 				],
 				[
-					"",
+					"PASSED",
 					"PASSED",
 					"Precord",
 					"puppieguts",
@@ -15123,13 +15158,13 @@
 					"Puzzles, JRPGs, CRPGs, Strategy, Simulation, Casual, Dating",
 					"Medium",
 					"Anything Goes",
-					"Pending",
-					"0/10",
+					"Completed",
+					"5/10",
 					"Completed",
 					"4/10",
-					"",
+					"11 volumes",
 					"120 chapters",
-					"",
+					"https://discord.com/channels/994071728017899600/1077741836749242468/1360275540782747830",
 					"https://discord.com/channels/994071728017899600/1077741836749242468/1354192457721581608"
 				],
 				[
@@ -15291,7 +15326,7 @@
 					"0/10"
 				],
 				[
-					"",
+					"PASSED",
 					"",
 					"Rezero",
 					"outlaw3728",
@@ -15316,10 +15351,13 @@
 					"",
 					"",
 					"",
+					"Completed",
+					"7/10",
 					"Pending",
 					"0/10",
-					"Pending",
-					"0/10"
+					"12 episodes (1 season)",
+					"",
+					"https://discord.com/channels/994071728017899600/1077741836749242468/1341884566667001906"
 				],
 				[
 					"",
@@ -16057,7 +16095,7 @@
 				],
 				[
 					"PASSED",
-					"",
+					"PASSED",
 					"SBY",
 					"chunny0471_13573",
 					"\u003c-----",
@@ -16699,7 +16737,7 @@
 					"SLIME",
 					"dripturion",
 					"\u003c-----",
-					"malachi204",
+					"malathelad",
 					"In terms of isekai novels ive already read most the big titles, just a heads up",
 					"https://anilist.co/user/dripturion/",
 					"https://steamcommunity.com/profiles/76561199171403887/",
@@ -18168,7 +18206,7 @@
 					"0/10"
 				],
 				[
-					"",
+					"PASSED",
 					"",
 					"world trigger",
 					"emperorbob",
@@ -18193,10 +18231,13 @@
 					"",
 					"",
 					"",
+					"Completed",
+					"7.2/10",
 					"Pending",
 					"0/10",
-					"Pending",
-					"0/10"
+					"12/12 (1 season)",
+					"",
+					"https://discord.com/channels/994071728017899600/1077741836749242468/1356042717964144830"
 				],
 				[
 					"",
@@ -19389,14 +19430,15 @@
 					"0/10"
 				],
 				[
-					"",
+					"PASSED",
 					"Veteran Special",
 					"Deceasedz",
 					"Saekano: How to Raise a Boring Girlfriend (Anime)",
 					"Kusakari",
 					"Complete",
-					"",
-					"0/10"
+					"25 episodes + 1 movie",
+					"7.5/10",
+					"https://discord.com/channels/994071728017899600/1290461793587564637/1344070669620744285"
 				],
 				[
 					"PASSED",
@@ -19563,14 +19605,15 @@
 					"Anicord Winter 2025: Seto Utsumi"
 				],
 				[
-					"",
+					"PASSED",
 					"Veteran Special",
 					"Blurrysink",
 					"Seto Utsumi (Manga)",
 					"Cyanara4",
-					"Pending",
-					"",
-					"0/10"
+					"Complete",
+					"76/76 chapters, 8 volumes",
+					"5/10",
+					"https://discord.com/channels/994071728017899600/1290461793587564637/1359244880282386776"
 				],
 				[
 					"",
@@ -19666,7 +19709,7 @@
 				[
 					"",
 					"Veteran Special",
-					"galooom",
+					"caocaodrowning",
 					"Summer Time Rendering (Anime)",
 					"Theroshi",
 					"Pending",
@@ -19769,8 +19812,8 @@
 					"hidinnightmares",
 					"Tengoku Daimakyo (Anime)",
 					"Theroshi",
-					"Pending",
-					"",
+					"Started",
+					"13/13, writing review",
 					"0/10"
 				],
 				[
@@ -19789,8 +19832,8 @@
 					"Judgedreddpool",
 					"Tengoku Daimakyo (Anime)",
 					"Theroshi",
-					"Pending",
-					"0/13",
+					"Started",
+					"5/13 Episodes",
 					"0/10"
 				],
 				[
@@ -19993,20 +20036,20 @@
 				[
 					"PASSED",
 					"VN Special",
+					"caocaodrowning",
+					"FMD Muramasa",
+					"",
+					"8/10",
+					"https://discord.com/channels/994071728017899600/1337886353211396117/1341127905295728722"
+				],
+				[
+					"PASSED",
+					"VN Special",
 					"dairyqueen0922",
 					"FMD Muramasa",
 					"",
 					"8/10",
 					"https://discord.com/channels/994071728017899600/1337886353211396117/1342784619405115395"
-				],
-				[
-					"PASSED",
-					"VN Special",
-					"galooom",
-					"FMD Muramasa",
-					"",
-					"8/10",
-					"https://discord.com/channels/994071728017899600/1337886353211396117/1341127905295728722"
 				],
 				[
 					"",
@@ -20180,7 +20223,15 @@
 				["", "VN Special", "ej_sucks", "Katawa Shoujou", "", "0/10"],
 				["", "VN Special", "icy666", "Katawa Shoujou", "", "0/10"],
 				["", "VN Special", "idaard8", "Katawa Shoujou", "", "0/10"],
-				["", "VN Special", "John424", "Katawa Shoujou", "", "0/10"],
+				[
+					"PASSED",
+					"VN Special",
+					"John424",
+					"Katawa Shoujou",
+					"",
+					"9.5/10",
+					"Anicord Winter 2025: Katawa Shoujo"
+				],
 				[
 					"",
 					"VN Special",
@@ -20189,7 +20240,7 @@
 					"looumeister",
 					"0/10"
 				],
-				["", "VN Special", "malachi204", "Katawa Shoujou", "", "0/10"],
+				["", "VN Special", "malathelad", "Katawa Shoujou", "", "0/10"],
 				["", "VN Special", "miimodamacy", "Katawa Shoujou", "", "0/10"],
 				["", "VN Special", "shadenkitty", "Katawa Shoujou", "", "0/10"],
 				["", "VN Special", "snk_yeager", "Katawa Shoujou", "", "0/10"],
@@ -20495,6 +20546,7 @@
 				["", "VN Special", "bocchicookie", "Until Then", "", "0/10"],
 				["", "VN Special", "bruhd_", "Until Then", "", "0/10"],
 				["", "VN Special", "kadak9", "Until Then", "", "0/10"],
+				["", "VN Special", "tomfuulery", "Until Then", "", "0/10"],
 				["", "VN Special", "vieamiu", "Until Then", "", "0/10"],
 				[
 					"",
@@ -20561,7 +20613,6 @@
 				["", "VN Special", "stevenkas", "PLEASE SELECT", "", "0/10"],
 				["", "VN Special", "sylveann", "PLEASE SELECT", "", "0/10"],
 				["", "VN Special", "Theroshi", "PLEASE SELECT", "", "0/10"],
-				["", "VN Special", "tomfuulery", "Until Then", "", "0/10"],
 				["", "VN Special", "Trixing", "PLEASE SELECT", "", "0/10"],
 				["", "VN Special", "vuqf", "PLEASE SELECT", "", "0/10"],
 				[
@@ -21340,6 +21391,14 @@
 				[
 					"",
 					"Movie Special",
+					"shirenn",
+					"Perfect Blue",
+					"Frazzle",
+					"0/10"
+				],
+				[
+					"",
+					"Movie Special",
 					"snk_yeager",
 					"Perfect Blue",
 					"Frazzle",
@@ -21573,7 +21632,7 @@
 					"The Tunnel to Summer",
 					"Frazzle",
 					"5/10",
-					"https://docs.google.com/document/d/1SjkZ57pri1kSdZ6WsYaridKpfihK6pgWVLWRBsvn8i4/edit?usp=sharing"
+					"Winter 2025 Movie Challenge: The Tunnel to Summer"
 				],
 				[
 					"",
@@ -21587,6 +21646,14 @@
 					"",
 					"Movie Special",
 					"bubblyadeleine",
+					"The Tunnel to Summer",
+					"Frazzle",
+					"0/10"
+				],
+				[
+					"",
+					"Movie Special",
+					"caocaodrowning",
 					"The Tunnel to Summer",
 					"Frazzle",
 					"0/10"
@@ -21631,20 +21698,12 @@
 					"The Tunnel to Summer",
 					"Frazzle",
 					"8.5/10",
-					"https://docs.google.com/document/d/1FD2wHqD6U44B6jVkSoXWrfyrhlpoAqTiwh077MBKaAg/edit?usp=sharing"
+					"Anicord Winter 2025 - Movie Special: The Tunnel to Summer"
 				],
 				[
 					"",
 					"Movie Special",
 					"filmuwaaa",
-					"The Tunnel to Summer",
-					"Frazzle",
-					"0/10"
-				],
-				[
-					"",
-					"Movie Special",
-					"galooom",
 					"The Tunnel to Summer",
 					"Frazzle",
 					"0/10"
@@ -21716,7 +21775,7 @@
 				[
 					"",
 					"Movie Special",
-					"malachi204",
+					"malathelad",
 					"The Tunnel to Summer",
 					"Frazzle",
 					"0/10"
@@ -21808,6 +21867,14 @@
 					"",
 					"Movie Special",
 					"rinnka",
+					"The Tunnel to Summer",
+					"Frazzle",
+					"0/10"
+				],
+				[
+					"",
+					"Movie Special",
+					"ryuoshin",
 					"The Tunnel to Summer",
 					"Frazzle",
 					"0/10"
@@ -22329,23 +22396,7 @@
 				[
 					"",
 					"Movie Special",
-					"ryuoshin",
-					"PLEASE SELECT",
-					"Frazzle",
-					"0/10"
-				],
-				[
-					"",
-					"Movie Special",
 					"setsuna_yuuki",
-					"PLEASE SELECT",
-					"Frazzle",
-					"0/10"
-				],
-				[
-					"",
-					"Movie Special",
-					"shirenn",
 					"PLEASE SELECT",
 					"Frazzle",
 					"0/10"
@@ -22614,13 +22665,14 @@
 					"0/10"
 				],
 				[
-					"",
+					"PASSED",
 					"Indie Special",
 					"biabbk",
 					"Astlibra Revision",
 					"Frazzle",
-					"0/5",
-					"0/10"
+					"5/5",
+					"5/10",
+					"Winter 2025 Indie Challenge: Astlibra revision"
 				],
 				[
 					"PASSED",
@@ -22697,7 +22749,7 @@
 					"https://discord.com/channels/994071728017899600/1143223400752488538/1342226663555072063"
 				],
 				[
-					"",
+					"PASSED",
 					"Indie Special",
 					"dairyqueen0922",
 					"Brutal Orchestra",
@@ -23018,7 +23070,7 @@
 				[
 					"",
 					"Indie Special",
-					"malachi204",
+					"malathelad",
 					"Nine Sols",
 					"",
 					"0/5",
@@ -23187,7 +23239,7 @@
 					"GavinDNA",
 					"Tactical Breach Wizards",
 					"",
-					"t",
+					"4/5",
 					"9.5/10",
 					"https://discord.com/channels/994071728017899600/1143223400752488538/1343801444184100926"
 				],
@@ -23911,6 +23963,14 @@
 				[
 					"",
 					"Extreme Special",
+					"caocaodrowning",
+					"PICAYUNE DREAMS",
+					"",
+					"0/10"
+				],
+				[
+					"",
+					"Extreme Special",
 					"catrina72",
 					"PICAYUNE DREAMS",
 					"",
@@ -23994,14 +24054,6 @@
 					"",
 					"Extreme Special",
 					"foxroom",
-					"PICAYUNE DREAMS",
-					"",
-					"0/10"
-				],
-				[
-					"",
-					"Extreme Special",
-					"galooom",
 					"PICAYUNE DREAMS",
 					"",
 					"0/10"
@@ -24108,7 +24160,7 @@
 				[
 					"",
 					"Extreme Special",
-					"malachi204",
+					"malathelad",
 					"PICAYUNE DREAMS",
 					"",
 					"0/10"
@@ -24321,12 +24373,13 @@
 					"0/10"
 				],
 				[
-					"",
+					"PASSED",
 					"Extreme Special",
 					"shadowfox72419",
 					"PICAYUNE DREAMS",
 					"risasi",
-					"0/10"
+					"7.5/10",
+					"https://discord.com/channels/994071728017899600/1337886635383328831/1340175704893030420"
 				],
 				[
 					"",
@@ -24337,12 +24390,13 @@
 					"0/10"
 				],
 				[
-					"",
+					"PASSED",
 					"Extreme Special",
 					"Shirenn",
 					"PICAYUNE DREAMS",
 					"",
-					"0/10"
+					"8.4/10",
+					"https://discord.com/channels/994071728017899600/1337886635383328831/1359793150713008159"
 				],
 				[
 					"PASSED",
@@ -24505,10 +24559,11 @@
 			]
 		},
 		{
-			"range": "Buddying!B2:N68",
+			"range": "Buddying!A2:N68",
 			"majorDimension": "ROWS",
 			"values": [
 				[
+					"",
 					"",
 					".reito.",
 					"\u003c-----",
@@ -24523,6 +24578,7 @@
 				],
 				[
 					"",
+					"",
 					".rozemyne.",
 					"\u003c-----",
 					"zykun6556",
@@ -24536,6 +24592,7 @@
 					"https://discord.com/channels/994071728017899600/1156279292465000538/1358101808723267714"
 				],
 				[
+					"PASSED",
 					"",
 					"14ftdude",
 					"\u003c-----",
@@ -24549,6 +24606,7 @@
 					"0/10"
 				],
 				[
+					"",
 					"PASSED",
 					"2rubs",
 					"\u003c-----",
@@ -24565,6 +24623,7 @@
 				],
 				[
 					"PASSED",
+					"PASSED",
 					"420Templar",
 					"\u003c-----",
 					"tomfuulery",
@@ -24580,6 +24639,7 @@
 				],
 				[
 					"",
+					"",
 					"AlwaysNever",
 					"\u003c-----",
 					"builderboss11",
@@ -24592,6 +24652,7 @@
 					"0/10"
 				],
 				[
+					"",
 					"",
 					"astralpeanut",
 					"\u003c-----",
@@ -24606,6 +24667,7 @@
 				],
 				[
 					"",
+					"",
 					"aylen_chan",
 					"\u003c-----",
 					"xenbec",
@@ -24619,6 +24681,7 @@
 				],
 				[
 					"",
+					"PASSED",
 					"bananamath",
 					"\u003c-----",
 					"risasi",
@@ -24626,11 +24689,14 @@
 					"rainy_st",
 					"Homeless/No Home (Manhwa)",
 					"",
-					"",
+					"270 chapters",
 					"0/10",
-					"0/10"
+					"9/10",
+					"",
+					"https://discord.com/channels/994071728017899600/1156279292465000538/1360014458897957035"
 				],
 				[
+					"",
 					"",
 					"bdbdTakes",
 					"\u003c-----",
@@ -24645,6 +24711,7 @@
 				],
 				[
 					"",
+					"",
 					"blossom6279",
 					"\u003c-----",
 					"_uvie",
@@ -24657,6 +24724,7 @@
 					"0/10"
 				],
 				[
+					"",
 					"",
 					"Bobbytron3000",
 					"\u003c-----",
@@ -24671,6 +24739,7 @@
 				],
 				[
 					"",
+					"",
 					"Bpendragon",
 					"\u003c-----",
 					"Myne1435",
@@ -24683,6 +24752,7 @@
 					"0/10"
 				],
 				[
+					"",
 					"",
 					"BroadwayButterfly310",
 					"\u003c-----",
@@ -24697,6 +24767,7 @@
 				],
 				[
 					"",
+					"",
 					"bruhd_",
 					"\u003c-----",
 					"_terriermon",
@@ -24709,6 +24780,7 @@
 					"0/10"
 				],
 				[
+					"",
 					"",
 					"bubblyadeleine",
 					"\u003c-----",
@@ -24723,6 +24795,7 @@
 				],
 				[
 					"",
+					"",
 					"Cyanara4 ",
 					"\u003c-----",
 					"",
@@ -24735,6 +24808,7 @@
 					"0/10"
 				],
 				[
+					"",
 					"",
 					"cycryllic.9785",
 					"\u003c-----",
@@ -24749,20 +24823,22 @@
 				],
 				[
 					"PASSED",
+					"PASSED",
 					"dadroo",
 					"\u003c-----",
 					"CosmicFunk",
 					"Tamako Market (Anime) ",
 					"bdbdTakes",
 					"Planetarian (VN)",
-					"",
+					"12 episodes + movie",
 					"16/16 chapters",
-					"0/10",
+					"7.5/10",
 					"6.5/10",
-					"",
+					"https://discord.com/channels/994071728017899600/1156279292465000538/1360410057048588348",
 					"https://discord.com/channels/994071728017899600/1156279292465000538/1347909236172259408"
 				],
 				[
+					"",
 					"",
 					"di.vorce",
 					"\u003c-----",
@@ -24777,6 +24853,7 @@
 				],
 				[
 					"",
+					"",
 					"dylanthedudegames",
 					"\u003c-----",
 					"IcewingPrime",
@@ -24789,6 +24866,7 @@
 					"0/10"
 				],
 				[
+					"",
 					"",
 					"ej_sucks",
 					"\u003c-----",
@@ -24803,6 +24881,7 @@
 				],
 				[
 					"",
+					"",
 					"flop_ed",
 					"\u003c-----",
 					"bdbdTakes",
@@ -24815,6 +24894,7 @@
 					"0/10"
 				],
 				[
+					"PASSED",
 					"",
 					"Foopy",
 					"\u003c-----",
@@ -24830,6 +24910,7 @@
 				],
 				[
 					"",
+					"",
 					"Guyavot",
 					"\u003c-----",
 					"vacantvisionary",
@@ -24843,6 +24924,7 @@
 				],
 				[
 					"",
+					"",
 					"harewataru",
 					"\u003c-----",
 					"thegoodmaousama",
@@ -24855,6 +24937,7 @@
 					"0/10"
 				],
 				[
+					"PASSED",
 					"PASSED",
 					"harumi",
 					"\u003c-----",
@@ -24871,6 +24954,7 @@
 				],
 				[
 					"",
+					"",
 					"hieloski",
 					"\u003c-----",
 					"dripturion",
@@ -24883,6 +24967,7 @@
 					"0/10"
 				],
 				[
+					"",
 					"",
 					"homuhomu",
 					"\u003c-----",
@@ -24897,6 +24982,7 @@
 				],
 				[
 					"",
+					"",
 					"imaginef1",
 					"\u003c-----",
 					".slushiee",
@@ -24910,6 +24996,7 @@
 				],
 				[
 					"",
+					"",
 					"Isodo2",
 					"\u003c-----",
 					"HollowedNocturne",
@@ -24922,6 +25009,7 @@
 					"0/10"
 				],
 				[
+					"PASSED",
 					"",
 					"John424",
 					"\u003c-----",
@@ -24937,6 +25025,7 @@
 				],
 				[
 					"",
+					"PASSED",
 					"JudgeDreddpool",
 					"\u003c-----",
 					"dylan123_.",
@@ -24944,11 +25033,14 @@
 					"Theroshi",
 					"Pluto (Anime)",
 					"",
-					"",
+					"8/8 (1 season)",
 					"0/10",
-					"0/10"
+					"10/10",
+					"",
+					"https://discord.com/channels/994071728017899600/1156279292465000538/1359642106724876442"
 				],
 				[
+					"",
 					"",
 					"julieter",
 					"\u003c-----",
@@ -24963,6 +25055,7 @@
 				],
 				[
 					"",
+					"",
 					"kinajiko",
 					"\u003c-----",
 					"tomfuulery",
@@ -24975,6 +25068,7 @@
 					"0/10"
 				],
 				[
+					"PASSED",
 					"",
 					"kurisu_lunav",
 					"\u003c-----",
@@ -24990,6 +25084,7 @@
 				],
 				[
 					"",
+					"",
 					"ladyrishimu",
 					"\u003c-----",
 					"dand3li0n",
@@ -25002,6 +25097,7 @@
 					"0/10"
 				],
 				[
+					"",
 					"",
 					"lowkey_.",
 					"\u003c-----",
@@ -25016,6 +25112,7 @@
 				],
 				[
 					"",
+					"",
 					"madfigs",
 					"\u003c-----",
 					"aquadayo.",
@@ -25029,7 +25126,8 @@
 				],
 				[
 					"",
-					"malachi204",
+					"",
+					"malathelad",
 					"\u003c-----",
 					"et3rnity.7",
 					"Hollow Knight (Game)",
@@ -25041,6 +25139,7 @@
 					"0/10"
 				],
 				[
+					"",
 					"",
 					"mistas_t",
 					"\u003c-----",
@@ -25054,6 +25153,7 @@
 					"0/10"
 				],
 				[
+					"PASSED",
 					"",
 					"Myne1435",
 					"\u003c-----",
@@ -25069,6 +25169,7 @@
 				],
 				[
 					"",
+					"",
 					"OSXtrafton",
 					"\u003c-----",
 					"zokona",
@@ -25081,6 +25182,7 @@
 					"0/10"
 				],
 				[
+					"",
 					"",
 					"outlaw3728",
 					"\u003c-----",
@@ -25095,6 +25197,7 @@
 				],
 				[
 					"",
+					"",
 					"pepe",
 					"\u003c-----",
 					"idaard8",
@@ -25107,6 +25210,7 @@
 					"0/10"
 				],
 				[
+					"",
 					"PASSED",
 					"phantom_neco",
 					"\u003c-----",
@@ -25123,6 +25227,7 @@
 				],
 				[
 					"",
+					"",
 					"Puppieguts",
 					"\u003c-----",
 					"hotgarbage0377",
@@ -25135,6 +25240,7 @@
 					"0/10"
 				],
 				[
+					"PASSED",
 					"",
 					"raeschh",
 					"\u003c-----",
@@ -25149,6 +25255,7 @@
 					"https://discord.com/channels/994071728017899600/1156279292465000538/1352017997564477522"
 				],
 				[
+					"",
 					"PASSED",
 					"redstartheninja",
 					"\u003c-----",
@@ -25165,11 +25272,12 @@
 				],
 				[
 					"",
+					"",
 					"rhs31",
 					"\u003c-----",
 					"alkuia",
 					"Orange (Manga)",
-					"galooom",
+					"caocaodrowning",
 					"Kowloon Generic Romance (Manga)",
 					"",
 					"",
@@ -25177,6 +25285,7 @@
 					"0/10"
 				],
 				[
+					"",
 					"",
 					"risasi",
 					"\u003c-----",
@@ -25190,6 +25299,7 @@
 					"0/10"
 				],
 				[
+					"PASSED",
 					"PASSED",
 					"rudeous",
 					"\u003c-----",
@@ -25206,6 +25316,7 @@
 				],
 				[
 					"",
+					"",
 					"ryuoshin ",
 					"\u003c-----",
 					"homuhomu",
@@ -25218,6 +25329,7 @@
 					"0/10"
 				],
 				[
+					"",
 					"",
 					"scarlet_titania",
 					"\u003c-----",
@@ -25232,6 +25344,7 @@
 				],
 				[
 					"",
+					"",
 					"Shirenn",
 					"\u003c-----",
 					"astralpeanut",
@@ -25245,6 +25358,7 @@
 				],
 				[
 					"",
+					"",
 					"shirox_",
 					"\u003c-----",
 					"EmbersOasis",
@@ -25257,6 +25371,7 @@
 					"0/10"
 				],
 				[
+					"PASSED",
 					"",
 					"skyblade743",
 					"\u003c-----",
@@ -25272,6 +25387,7 @@
 				],
 				[
 					"",
+					"",
 					"Squiggymaru ",
 					"\u003c-----",
 					"ritarina",
@@ -25284,6 +25400,7 @@
 					"0/10"
 				],
 				[
+					"",
 					"",
 					"starpen8volkov",
 					"\u003c-----",
@@ -25298,6 +25415,7 @@
 				],
 				[
 					"",
+					"",
 					"tearlach",
 					"\u003c-----",
 					"rawwad",
@@ -25310,6 +25428,7 @@
 					"0/10"
 				],
 				[
+					"",
 					"",
 					"ThanksRize",
 					"\u003c-----",
@@ -25324,6 +25443,7 @@
 				],
 				[
 					"",
+					"",
 					"Thanuilod",
 					"\u003c-----",
 					"hotgarbage0377",
@@ -25336,6 +25456,7 @@
 					"0/10"
 				],
 				[
+					"",
 					"",
 					"trev23",
 					"\u003c-----",
@@ -25350,6 +25471,7 @@
 				],
 				[
 					"",
+					"",
 					"vacantvisionary",
 					"\u003c-----",
 					"bobbytron3000",
@@ -25362,6 +25484,7 @@
 					"0/10"
 				],
 				[
+					"PASSED",
 					"PASSED",
 					"willy_vodka",
 					"\u003c-----",
@@ -25378,6 +25501,7 @@
 				],
 				[
 					"PASSED",
+					"PASSED",
 					"zephyrlox",
 					"\u003c-----",
 					"kurisu_lunav",
@@ -25392,6 +25516,7 @@
 					"https://discord.com/channels/994071728017899600/1156279292465000538/1352228019145670666"
 				],
 				[
+					"",
 					"",
 					"zoo114",
 					"\u003c-----",

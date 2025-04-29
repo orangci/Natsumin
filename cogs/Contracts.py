@@ -289,7 +289,6 @@ class Contracts(commands.Cog):
 		contract_database, _ = _get_sheet_data_and_update()
 		rep = rep.replace(" ", "-").lower()
 		passed_status = passed_status.lower()
-		# pending status is "" in database
 		if passed_status not in ["all", "*", "passed", "failed", "pending"]:
 			await ctx.reply("Invalid status! Use `all`, `*`, `passed`, `failed` or `pending`")
 			return

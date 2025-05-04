@@ -18,7 +18,7 @@ bot = commands.Bot(
 	activity=discord.CustomActivity(name="Doing contracts"),
 	intents=discord.Intents.all(),
 	allowed_mentions=discord.AllowedMentions(
-		everyone=False, roles=False, users=True, replied_user=True
+		everyone=False, roles=False, users=True, replied_user=False
 	)
 )
 

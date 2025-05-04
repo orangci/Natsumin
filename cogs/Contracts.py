@@ -324,7 +324,7 @@ class Contracts(commands.Cog):
 			return
 
 		if not enable_upcoming_select:
-			await ctx.reply(embed=_create_user_contracts_embed("All", contracts_user, selected_member), mention_author=False)
+			await ctx.reply(embed=_create_user_contracts_embed("All", contracts_user, selected_member))
 		else:
 			await ctx.reply(
 				embed=_create_user_contracts_embed("Primary", contracts_user, selected_member, False),
@@ -332,8 +332,7 @@ class Contracts(commands.Cog):
 					contracts_user=contracts_user,
 					target_member=selected_member,
 					sender=ctx.author
-				),
-				mention_author=False,
+				)
 			)
 
 	@commands.command(name="stats", help="Check the season's stats", aliases=["s"])
@@ -351,7 +350,7 @@ class Contracts(commands.Cog):
 		for contract_type, type_stats in season_stats.contract_types.items():
 			embed.add_field(name=f"{contract_type} ({get_percentage(type_stats[0], type_stats[1])}%)", value=f"{type_stats[0]}/{type_stats[1]}")
 		
-		await ctx.reply(embed=embed, mention_author=False)
+		await ctx.reply(embed=embed)
 
 	@commands.command(name="profile", help="Get a user's profile", aliases=["p"])
 	@commands.cooldown(rate=5, per=5, type=commands.BucketType.user)
@@ -378,7 +377,7 @@ class Contracts(commands.Cog):
 		contracts_embed.add_field(name="Preferences", value=contract_user.preferences, inline=True)
 		contracts_embed.add_field(name="Bans", value=contract_user.bans, inline=True)
 
-		await ctx.reply(embed=contracts_embed, mention_author=False)
+		await ctx.reply(embed=contracts_embed)
 
 def setup(bot: commands.Bot):
 	bot.add_cog(Contracts(bot))

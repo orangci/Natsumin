@@ -164,7 +164,7 @@ class Contracts(commands.Cog):
 			selected_member = get_member_from_username(self.bot, username)
 		
 		season, _ = get_season_data()
-		contracts_user = season.users.get(username, None)
+		contracts_user = season.get_user(username)
 		if not contracts_user:
 			not_found_embed = discord.Embed(title="Contracts", color=discord.Color.red(), description="User not found! If this is a mistake please ping <@546659584727580692>")
 			await ctx.respond(embed=not_found_embed, ephemeral=True)
@@ -181,7 +181,7 @@ class Contracts(commands.Cog):
 		)
 
 	@user_group.command(name="type", description="Get information regarding a type of contract")
-	async def info(
+	async def type(
 		self,
 		ctx: discord.ApplicationContext,
 		contract_type: discord.Option(str, name="type", description="Type of contract to check", required=True, choices=list(DASHBOARD_ROW_NAMES.values())), # type: ignore
@@ -196,7 +196,7 @@ class Contracts(commands.Cog):
 			selected_member = get_member_from_username(self.bot, username)
 	
 		season, last_updated_timestamp = get_season_data()
-		contract_user = season.users.get(username, None)
+		contract_user = season.get_user(username)
 		if not contract_user:
 			not_found_embed = discord.Embed(color=discord.Color.red(), description="User not found! If this is a mistake please ping <@546659584727580692>")
 			await ctx.respond(embed=not_found_embed, ephemeral=True)
@@ -239,7 +239,7 @@ class Contracts(commands.Cog):
 			selected_member = get_member_from_username(self.bot, username)
 	
 		season, last_updated_timestamp = get_season_data()
-		contract_user = season.users.get(username, None)
+		contract_user = season.get_user(username)
 		if not contract_user:
 			not_found_embed = discord.Embed(title="User Info", color=discord.Color.red(), description="User not found! If this is a mistake please ping <@546659584727580692>")
 			await ctx.respond(embed=not_found_embed, ephemeral=True)
@@ -259,7 +259,7 @@ class Contracts(commands.Cog):
 	@discord.user_command(name="Get User Contracts", guild_ids=BOT_CONFIG.guild_ids)
 	async def get_user_command(self, ctx: discord.ApplicationContext, user: discord.User):		
 		season, _ = get_season_data()
-		contracts_user = season.users.get(user.name, None)
+		contracts_user = season.get_user(user.name)
 		if not contracts_user:
 			not_found_embed = discord.Embed(title="Contracts", color=discord.Color.red(), description="User not found! If this is a mistake please ping <@546659584727580692>")
 			await ctx.respond(embed=not_found_embed, ephemeral=True)
@@ -300,7 +300,7 @@ class Contracts(commands.Cog):
 		name="contracts",
 		help="Get status for all your contracts",
 		description="Get status for all your contracts",
-		aliases=["get"]
+		aliases=["get", "get_contracts"]
 	)
 	async def get_text(self, ctx: commands.Context, username: str = None):
 		selected_member: discord.member = None
@@ -311,7 +311,7 @@ class Contracts(commands.Cog):
 			selected_member = get_member_from_username(self.bot, username)
 		
 		season, _ = get_season_data()
-		contracts_user = season.users.get(username, None)
+		contracts_user = season.get_user(username)
 		if not contracts_user:
 			not_found_embed = discord.Embed(title="Contracts", color=discord.Color.red(), description="User not found! If this is a mistake please ping <@546659584727580692>")
 			await ctx.reply(embed=not_found_embed, delete_after=3)

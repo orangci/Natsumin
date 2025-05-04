@@ -34,7 +34,7 @@ class User:
 	contracts: dict[str, Contract] = field(default_factory=dict, repr=False)
 
 	def get_contractor(self, season: "Season") -> Optional["User"]:
-		return season.users.get(self.contractor, None)
+		return season.get_user(self.contractor)
 
 	def get_contractee(self, season: "Season") -> Optional["User"]:
 		users_with_this_contractor = [user for user in season.users.values() if user.contractor == self.name]
@@ -52,6 +52,9 @@ class SeasonStats:
 class Season:
 	users: dict[str, User] = field(default_factory=dict, repr=False)
 	stats: SeasonStats = None
+
+	def get_user(self, username: str) -> Optional["User"]:
+		return self.users.get(username, None)
 
 DASHBOARD_ROW_NAMES = {
 	0: "Base Contract",

@@ -51,7 +51,7 @@ class Owner(commands.Cog):
 	@commands.is_owner()
 	async def clear_cache(self, ctx: commands.Context):
 		season_sheet_cache.clear()
-		self.logger.info
+		self.logger.info(f"Cache has been purged by @{ctx.author.name} ({ctx.author.id})")
 		await ctx.reply("Cache purged.\nNext command will request updated data.", delete_after=3)
 
 	@commands.command(hidden=True)

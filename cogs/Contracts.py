@@ -10,6 +10,7 @@ from contracts import get_season_data, SHEET_DATA_CACHE_DURATION, DASHBOARD_ROW_
 from shared import get_member_from_username
 
 contract_categories = {
+	"All": ["Base Contract", "Challenge Contract", "Veteran Special", "Movie Special", "VN Special", "Indie Special", "Extreme Special", "Base Buddy", "Challenge Buddy"],
 	"Primary": ["Base Contract", "Challenge Contract"],
 	"Specials": [
 		"Veteran Special", "Movie Special", "VN Special",
@@ -29,12 +30,12 @@ async def get_contracts_usernames(ctx: discord.AutocompleteContext):
 def get_common_embed(timestamp: float, contracts_user: Optional[contracts.User] = None, discord_member: Optional[discord.Member] = None) -> discord.Embed:
 	embed = discord.Embed(color=BASE_EMBED_COLOR)
 	if contracts_user:
-		if discord_member:
-			embed.set_thumbnail(url=discord_member.display_avatar.url)
+		#if discord_member:
+			#embed.set_thumbnail(url=discord_member.display_avatar.url)
 		embed.set_author(
 			name=f"{contracts_user.name} {"✅" if contracts_user.status == "PASSED" else "❌" if contracts_user.status == "FAILED" else ""}",
 			url=contracts_user.list_url if contracts_user.list_url != "" else None,
-			#icon_url=discord_member.display_avatar.url if discord_member else None
+			icon_url=discord_member.display_avatar.url if discord_member else None
 		)
 	last_updated_datetime = datetime.datetime.fromtimestamp(timestamp, datetime.UTC)
 	next_update_datetime = last_updated_datetime + datetime.timedelta(hours=SHEET_DATA_CACHE_DURATION)
@@ -67,7 +68,7 @@ def _create_user_contracts_embed(selected_category: str, user: contracts.User, t
 			embed.add_field(
 				name=f"{category_contract} {field_symbol}",
 				value=contract_data.name,
-				inline=False
+				inline=True
 			)
 
 	embed.title = f"Contracts [{len([c for c in user.contracts.values() if c.passed])}/{len(user.contracts)}]"
@@ -110,9 +111,9 @@ class ContractsView(discord.ui.View):
 		placeholder="Change contract category"
 	)
 	async def select_callback(self, select: discord.ui.Select, interaction: discord.Interaction):
-		if interaction.user.id != self.sender.id:
-			await interaction.respond("You are not allowed to change the category!",ephemeral=True)
-			return
+		#if interaction.user.id != self.sender.id:
+			#await interaction.respond("You are not allowed to change the category!",ephemeral=True)
+			#return
 		selected_category = select.values[0]
 
 		for select_option in select.options:
@@ -170,13 +171,13 @@ class Contracts(commands.Cog):
 			return
 
 		await ctx.respond(
-			embed=_create_user_contracts_embed("Primary", contracts_user, selected_member),
+			embed=_create_user_contracts_embed("All", contracts_user, selected_member),
 			ephemeral=is_ephemeral,
-			view=ContractsView(
-				contracts_user=contracts_user,
-				target_member=selected_member,
-				sender=ctx.author
-			)
+			#view=ContractsView(
+			#	contracts_user=contracts_user,
+			#	target_member=selected_member,
+			#	sender=ctx.author
+			#)
 		)
 
 	@user_group.command(name="type", description="Get information regarding a type of contract")
@@ -265,13 +266,13 @@ class Contracts(commands.Cog):
 			return
 
 		await ctx.respond(
-			embed=_create_user_contracts_embed("Primary", contracts_user, user),
+			embed=_create_user_contracts_embed("All", contracts_user, user),
 			ephemeral=True,
-			view=ContractsView(
-				contracts_user=contracts_user,
-				target_member=user,
-				sender=ctx.author
-			)
+			#view=ContractsView(
+			#	contracts_user=contracts_user,
+			#	target_member=user,
+			#	sender=ctx.author
+			#)
 		)
 
 	@contracts_group.command(name="stats", description="Check the current season's stats")
@@ -317,12 +318,12 @@ class Contracts(commands.Cog):
 			return
 
 		await ctx.reply(
-			embed=_create_user_contracts_embed("Primary", contracts_user, selected_member),
-			view=ContractsView(
-				contracts_user=contracts_user,
-				target_member=selected_member,
-				sender=ctx.author
-			),
+			embed=_create_user_contracts_embed("All", contracts_user, selected_member),
+			#view=ContractsView(
+			#	contracts_user=contracts_user,
+			#	target_member=selected_member,
+			#	sender=ctx.author
+			#),
 			mention_author=False,
 		)
 

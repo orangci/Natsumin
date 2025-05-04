@@ -60,7 +60,7 @@ def get_common_embed(timestamp: float, contracts_user: Optional[contracts.User] 
 	)
 	return embed
 
-def _create_user_contracts_embed(selected_category: str, user: contracts.User, target: discord.Member) -> discord.Embed:
+def _create_user_contracts_embed(selected_category: str, user: contracts.User, target: discord.Member, enable_inline: bool = True) -> discord.Embed:
 	_, last_updated_timestamp = get_season_data()
 	embed = get_common_embed(timestamp=last_updated_timestamp, contracts_user=user, discord_member=target)
 	#embed.description = f"**Rep:** {user.rep}\n**Contractor:** {user.contractor}\n### Contracts [{len([c for c in user.contracts.values() if c.passed])}/{len(user.contracts)}]"
@@ -78,7 +78,7 @@ def _create_user_contracts_embed(selected_category: str, user: contracts.User, t
 			embed.add_field(
 				name=f"{category_contract} {field_symbol}",
 				value=contract_data.name,
-				inline=True
+				inline=enable_inline
 			)
 
 	embed.title = f"Contracts [{len([c for c in user.contracts.values() if c.passed])}/{len(user.contracts)}]"
@@ -86,7 +86,7 @@ def _create_user_contracts_embed(selected_category: str, user: contracts.User, t
 
 class ContractsView(discord.ui.View):
 	def __init__(self, sender: discord.User, contracts_user: contracts.User, target_member: discord.Member):
-		super().__init__(timeout=5 * 60)
+		super().__init__(timeout=5 * 60, disable_on_timeout=True)
 		self.contracts_user = contracts_user
 		self.target = target_member
 		self.sender = sender
@@ -94,6 +94,7 @@ class ContractsView(discord.ui.View):
 
 		categories_to_add: list[dict] = []
 		for category, category_contracts in contract_categories.items():
+			if category == "All": continue
 			contract_category_passed = 0
 			contract_category_total = 0
 			for contract_type, contract_data in self.contracts_user.contracts.items():
@@ -131,7 +132,7 @@ class ContractsView(discord.ui.View):
 			if select_option.value == selected_category:
 				select_option.default = True	
 
-		await interaction.edit(embed=_create_user_contracts_embed(selected_category, self.contracts_user, self.target), view=self)
+		await interaction.edit(embed=_create_user_contracts_embed(selected_category, self.contracts_user, self.target, False), view=self)
 
 class Contracts(commands.Cog):
 	def __init__(self, bot: commands.Bot):
@@ -306,8 +307,9 @@ class Contracts(commands.Cog):
 		await ctx.respond(embed=embed, ephemeral=is_ephemeral)
 
 
-	@commands.command(name="contracts", help="Get status for all your contracts", aliases=["get", "get_contracts"])
-	async def get_text(self, ctx: commands.Context, username: str = None):
+	@commands.command(name="contracts", help="Get status for all your contracts", aliases=["get", "g", "c"])
+	@commands.cooldown(rate=5, per=5, type=commands.BucketType.user)
+	async def get_text(self, ctx: commands.Context, username: str = None, enable_upcoming_select: bool = False):
 		selected_member: discord.member = None
 		if username is None:
 			selected_member = ctx.author
@@ -318,21 +320,24 @@ class Contracts(commands.Cog):
 		season, _ = get_season_data()
 		contracts_user = season.get_user(username)
 		if not contracts_user:
-			not_found_embed = discord.Embed(title="Contracts", color=discord.Color.red(), description="User not found! If this is a mistake please ping <@546659584727580692>")
-			await ctx.reply(embed=not_found_embed, delete_after=3)
+			await ctx.reply("User not found!", delete_after=3)
 			return
 
-		await ctx.reply(
-			embed=_create_user_contracts_embed("All", contracts_user, selected_member),
-			#view=ContractsView(
-			#	contracts_user=contracts_user,
-			#	target_member=selected_member,
-			#	sender=ctx.author
-			#),
-			mention_author=False,
-		)
+		if not enable_upcoming_select:
+			await ctx.reply(embed=_create_user_contracts_embed("All", contracts_user, selected_member), mention_author=False)
+		else:
+			await ctx.reply(
+				embed=_create_user_contracts_embed("Primary", contracts_user, selected_member, False),
+				view=ContractsView(
+					contracts_user=contracts_user,
+					target_member=selected_member,
+					sender=ctx.author
+				),
+				mention_author=False,
+			)
 
-	@commands.command(name="stats", help="Check the season's stats")
+	@commands.command(name="stats", help="Check the season's stats", aliases=["s"])
+	@commands.cooldown(rate=5, per=5, type=commands.BucketType.user)
 	async def stats_text(self, ctx: commands.Context):
 		season, last_updated_timestamp = get_season_data()
 		season_stats = season.stats
@@ -346,7 +351,34 @@ class Contracts(commands.Cog):
 		for contract_type, type_stats in season_stats.contract_types.items():
 			embed.add_field(name=f"{contract_type} ({get_percentage(type_stats[0], type_stats[1])}%)", value=f"{type_stats[0]}/{type_stats[1]}")
 		
-		await ctx.reply(embed=embed,mention_author=False)
+		await ctx.reply(embed=embed, mention_author=False)
+
+	@commands.command(name="profile", help="Get a user's profile", aliases=["p"])
+	@commands.cooldown(rate=5, per=5, type=commands.BucketType.user)
+	async def profile_text(self, ctx: commands.Context, username: str = None):
+		selected_member: discord.member = None
+		if username is None:
+			selected_member = ctx.author
+			username = ctx.author.name
+		else:
+			selected_member = get_member_from_username(self.bot, username)
+	
+		season, last_updated_timestamp = get_season_data()
+		contract_user = season.get_user(username)
+		if not contract_user:
+			await ctx.reply("User not found!", delete_after=3)
+			return
+
+		contracts_embed = get_common_embed(last_updated_timestamp, contract_user, selected_member)
+		contracts_embed.description = (
+			f"**Rep**: {contract_user.rep}\n" +
+			f"**Contractor**: {contract_user.contractor}\n" +
+			(f"**List**: {contract_user.list_url}" if contract_user.list_url != "" else "")
+		)
+		contracts_embed.add_field(name="Preferences", value=contract_user.preferences, inline=True)
+		contracts_embed.add_field(name="Bans", value=contract_user.bans, inline=True)
+
+		await ctx.reply(embed=contracts_embed, mention_author=False)
 
 def setup(bot: commands.Bot):
 	bot.add_cog(Contracts(bot))

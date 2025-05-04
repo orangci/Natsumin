@@ -96,6 +96,29 @@ class Owner(commands.Cog):
 		expire_datetime = datetime.datetime.now(datetime.UTC) + datetime.timedelta(seconds=300)
 		await ctx.reply(content=f"Message will expire <t:{int(expire_datetime.timestamp())}:R>", files=[usernames_file, mentions_file] if len(pending_ids) != 0 else [usernames_file], view=DeleteMessageView(300, ctx.author.id), delete_after=300)
 
+	@commands.command(hidden=True)
+	@commands.is_owner()
+	async def delete_message(self, ctx: commands.Context, message_id: int, channel_id: int = None):
+		message = self.bot.get_message(message_id)
+		if not message:
+			if channel_id is None:
+				await ctx.reply("Channel ID argument required for uncached message!", delete_after=3)
+				return
+			message_channel = self.bot.get_channel(channel_id)
+			if not message_channel: message_channel = await self.bot.fetch_channel(channel_id)
+			message = await message_channel.fetch_message(message_id)
+		
+		if message is None:
+			await ctx.reply("Could not find the message you requested!", delete_after=3)
+			return
+		
+		if message.author.id != self.bot.user.id:
+			await ctx.reply("This command can only be used to delete the bot's messages!", delete_after=3)
+			return
+
+		await message.delete()
+		await ctx.reply("Message deleted!", delete_after=3)
+		
 
 def setup(bot: commands.Bot):
 	bot.add_cog(Owner(bot))

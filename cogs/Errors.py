@@ -33,6 +33,12 @@ class Errors(commands.Cog):
 		elif isinstance(error, commands.BotMissingPermissions):
 			error_type = "Bot Missing Permissions"
 			description = f"The bot is missing the required permissions to perform this command.\nMissing permissions: {", ".join(error.missing_permissions)}"
+		elif isinstance(error, commands.MissingRequiredArgument):
+			error_type = "Missing Required Argument"
+			description = f"You are missing required argument ``{error.param.name}``."
+		elif isinstance(error, discord.HTTPException):
+			error_type = "HTTP Exception"
+			description = f"An HTTP error occured: \"{error.text}\" ({error.status})"
 		elif isinstance(error, commands.CommandOnCooldown):
 			error_type = "Cooldown"
 			description = f"You may retry again in **{error.retry_after:.2f}** seconds."
@@ -44,7 +50,7 @@ class Errors(commands.Cog):
 		await ctx.reply(embed=embed, delete_after=5)
 
 		self.logger.error(f"Command error: {error_type} - {error}")
-		self.logger.exception("Traceback:")
+		#self.logger.exception("Traceback:")
 
 	@commands.Cog.listener()
 	async def on_application_command_error(self, ctx: discord.ApplicationContext, error: discord.DiscordException):

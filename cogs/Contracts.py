@@ -1,71 +1,43 @@
-import os
-import discord
-import requests
 import datetime
+import logging
 import math
-import io
-from globals import *
-from contracts_database import *
+import discord
 from typing import Optional
-from mezmorize import Cache
+from config import BOT_CONFIG, BASE_EMBED_COLOR, CONSOLE_LOGGING_FORMATTER, FILE_LOGGING_FORMATTER
 from discord.ext import commands
-from discord.commands import slash_command, user_command
+import contracts
+from contracts import get_season_data, SHEET_DATA_CACHE_DURATION, DASHBOARD_ROW_NAMES
+from shared import get_member_from_username
 
-SPREADSHEET_ID = "19aueoNx6BBU6amX7DhKGU8kHVauHWcSGiGKMzFSGkGc"
-GET_SHEET_DATA_URL = f"https://sheets.googleapis.com/v4/spreadsheets/{SPREADSHEET_ID}/values:batchGet"
-
-SHEET_DATA_CACHE_HOURS = 6
-SHEET_DATA_CACHE_DURATION = SHEET_DATA_CACHE_HOURS * 60 * 60
-
-cache = Cache(CACHE_TYPE='filesystem', CACHE_DIR='cache', CACHE_DEFAULT_TIMEOUT=1 * 60 * 60)
+contract_categories = {
+	"Primary": ["Base Contract", "Challenge Contract"],
+	"Specials": [
+		"Veteran Special", "Movie Special", "VN Special",
+		"Indie Special", "Extreme Special"
+	],
+	"Buddies": ["Base Buddy", "Challenge Buddy"]
+}
 
 def get_percentage(num: float, total: float) -> int:
 	return math.floor(100 * float(num)/float(total))
 
-def _get_member_from_username(bot: commands.Bot, username: str) -> Optional[discord.Member]:
-	for member in bot.get_all_members():
-		if member.name.lower() == username.lower():
-			return member
-	return None
-
-async def get_contract_usernames(ctx: discord.AutocompleteContext): 
-	contracts_database, _ = _get_sheet_data_and_update()
-	matching: list[str] = [username.lower() for username in contracts_database["users"].keys() if ctx.value.strip().lower() in username.lower()]
+async def get_contracts_usernames(ctx: discord.AutocompleteContext): 
+	season, _ = get_season_data()
+	matching: list[str] = [username.lower() for username in season.users if ctx.value.strip().lower() in username.lower()]
 	return matching
 
-@cache.memoize(timeout=SHEET_DATA_CACHE_DURATION)
-def _get_sheet_data_and_update() -> tuple[ContractsDatabase, float]:
-	response = requests.get(GET_SHEET_DATA_URL, {
-		"majorDimension": "ROWS",
-		"valueRenderOption": "FORMATTED_VALUE",
-		"ranges": [
-			"Dashboard!A2:U394",
-			"Base!A2:AG394",
-			"Veteran Special!A2:I167",
-			"VN Special!A2:G126",
-			"Movie Special!A2:H243",
-			"Indie Special!A2:H136",
-			"Extreme Special!A2:G95",
-			"Buddying!A2:N68"
-		],
-		"key": os.getenv("GOOGLE_API_KEY")
-	})
-
-	if response.status_code == 200:
-		return convert_sheet_to_database(response.json()), datetime.datetime.now(datetime.UTC).timestamp()
-	else:
-		print("RESPONSE FAILED:", response.status_code, response.json())
-
-def _get_base_embed(timestamp: float, username: str = "", contract_user: Optional[ContractsUser] = None, user: Optional[discord.User] = None) -> discord.Embed:
-	embed = discord.Embed(color=NATSUMIN_EMBED_COLOR)
-	if contract_user:
+def get_common_embed(timestamp: float, contracts_user: Optional[contracts.User] = None, discord_member: Optional[discord.Member] = None) -> discord.Embed:
+	embed = discord.Embed(color=BASE_EMBED_COLOR)
+	if contracts_user:
+		if discord_member:
+			embed.set_thumbnail(url=discord_member.display_avatar.url)
 		embed.set_author(
-			name=f"{username}{f" [{contract_user["status"]}]" if contract_user["status"].strip() != "" else ""}",
-			icon_url=user.display_avatar.url if user else None,
-			url=contract_user["list_url"] if contract_user["list_url"] != "" else None
+			name=f"{contracts_user.name} {"✅" if contracts_user.status == "PASSED" else "❌" if contracts_user.status == "FAILED" else ""}",
+			url=contracts_user.list_url if contracts_user.list_url != "" else None,
+			#icon_url=discord_member.display_avatar.url if discord_member else None
 		)
 	last_updated_datetime = datetime.datetime.fromtimestamp(timestamp, datetime.UTC)
-	next_update_datetime = last_updated_datetime + datetime.timedelta(hours=SHEET_DATA_CACHE_HOURS)
+	next_update_datetime = last_updated_datetime + datetime.timedelta(hours=SHEET_DATA_CACHE_DURATION)
 	current_datetime = datetime.datetime.now(datetime.UTC)
 	difference = next_update_datetime - current_datetime
 	difference_seconds = max(difference.total_seconds(), 0)
@@ -77,253 +49,302 @@ def _get_base_embed(timestamp: float, username: str = "", contract_user: Optiona
 	)
 	return embed
 
-class DeleteMessageView(discord.ui.View):
-	def __init__(self, timeout: Optional[float] = 300, user_id: Optional[int] = None):
-		super().__init__(timeout=timeout)
-		self.user_id = user_id
-
-	@discord.ui.button(label="Delete", style=discord.ButtonStyle.red)
-	async def delete(self, button: discord.ui.Button, interaction: discord.Interaction):
-		if self.user_id and interaction.user.id != self.user_id:
-			await interaction.response.send_message("You can't delete this message!", ephemeral=True)
-			return
-		await interaction.response.edit_message(view=None)
-		await interaction.delete_original_response()
-
-class Contracts(commands.Cog):
-	def __init__(self, bot: commands.Bot):
-		self.bot = bot
-
-	contracts_group: discord.SlashCommandGroup = discord.SlashCommandGroup(
-		guild_ids=config["debug_servers"], 
-		name="contracts", 
-		description="Contracts related commands",
-	)
-
-	@contracts_group.command(name="get", description="See your's or someone else's contracts")
-	async def get(
-		self, 
-		ctx: discord.ApplicationContext, 
-		username: discord.Option(str, name="username", description="User to check", required=False, autocomplete=get_contract_usernames), # type: ignore
-		is_ephemeral: discord.Option(bool, name="hidden", description="Whether you want the response only visible to you", default=False) # type: ignore
-		):
-		user: discord.Member = None
-		if username is None:
-			user = ctx.author
-			username = ctx.author.name
-		else:
-			user = _get_member_from_username(self.bot, username)
-
-		contract_database, last_updated_timestamp = _get_sheet_data_and_update()
-		contract_user = contract_database["users"].get(username, None)
-		if not contract_user:
-			not_found_embed = discord.Embed(title="Contracts", color=discord.Color.red(), description="User not found! If this is a mistake please ping <@546659584727580692>")
-			await ctx.respond(embed=not_found_embed, ephemeral=True)
-			return
-
-		contracts_passed = 0
-		contracts_embed = _get_base_embed(last_updated_timestamp, username, contract_user, user)
-		for contract_type in contract_user["contracts"]:
-			contract_data = contract_user["contracts"][contract_type]
-			contract_name = contract_data["name"]
-			field_symbol = "✅" if contract_data["passed"] else "❌"
+def _create_user_contracts_embed(selected_category: str, user: contracts.User, target: discord.Member) -> discord.Embed:
+	_, last_updated_timestamp = get_season_data()
+	embed = get_common_embed(timestamp=last_updated_timestamp, contracts_user=user, discord_member=target)
+	#embed.description = f"**Rep:** {user.rep}\n**Contractor:** {user.contractor}\n### Contracts [{len([c for c in user.contracts.values() if c.passed])}/{len(user.contracts)}]"
+	for category_contract in contract_categories.get(selected_category):
+		if category_contract in user.contracts:
+			contract_data = user.contracts.get(category_contract)
+			contract_name = contract_data.name
+			field_symbol = "✅" if contract_data.passed else "❌"
 			if contract_name == "-":
 				continue
 			elif contract_name == "PLEASE SELECT":
 				contract_name = f"__**{contract_name}**__"
 				field_symbol = "⚠️"
 
-			if contract_data["passed"] == True:
-				contracts_passed += 1
+			embed.add_field(
+				name=f"{category_contract} {field_symbol}",
+				value=contract_data.name,
+				inline=False
+			)
 
-			contracts_embed.add_field(name=f"{contract_type} {field_symbol}", value=contract_name, inline=True)
-		contracts_embed.title = f"Contracts ({contracts_passed}/{len(contract_user["contracts"].keys())})"
+	embed.title = f"Contracts [{len([c for c in user.contracts.values() if c.passed])}/{len(user.contracts)}]"
+	return embed
 
-		await ctx.respond(embed=contracts_embed, ephemeral=is_ephemeral)
+class ContractsView(discord.ui.View):
+	def __init__(self, sender: discord.User, contracts_user: contracts.User, target_member: discord.Member):
+		super().__init__(timeout=5 * 60)
+		self.contracts_user = contracts_user
+		self.target = target_member
+		self.sender = sender
+		self.current_category = "Primary"
 
-	@contracts_group.command(name="stats", description="Check the season's stats")
-	async def stats(
-		self, 
-		ctx: discord.ApplicationContext, 
-		is_ephemeral: discord.Option(bool, name="hidden", description="Whether you want the response only visible to you", default=False) # type: ignore
-	):
-		contract_database, last_updated_timestamp = _get_sheet_data_and_update()
-		season_stats = contract_database["stats"]
-		embed = _get_base_embed(last_updated_timestamp)
-		embed.title = "Contracts Winter 2025"
-		embed.description = (
-			f"Season ending on **<t:1746943200:D>** at **<t:1746943200:t>**\n" +
-			f"Users passed: {season_stats["users_passed"]}/{season_stats["users"]} ({get_percentage(season_stats["users_passed"],season_stats["users"])}%)\n" +
-			f"Contracts passed: {season_stats["contracts_passed"]}/{season_stats["contracts"]} ({get_percentage(season_stats["contracts_passed"],season_stats["contracts"])}%)"
-		)
-		for contract_type in season_stats["contract_types"]:
-			type_stats = season_stats["contract_types"][contract_type]
-			embed.add_field(name=f"{contract_type} ({get_percentage(type_stats[0], type_stats[1])}%)", value=f"{type_stats[0]}/{type_stats[1]}")
+		categories_to_add: list[dict] = []
+		for category, category_contracts in contract_categories.items():
+			contract_category_passed = 0
+			contract_category_total = 0
+			for contract_type, contract_data in self.contracts_user.contracts.items():
+				if contract_type in category_contracts:
+					if contract_data.passed:
+						contract_category_passed += 1
+					contract_category_total += 1
+
+			if contract_category_total > 0:
+				categories_to_add.append({
+					"name": category,
+					"passed": contract_category_passed,
+					"total": contract_category_total
+				})
 		
-		await ctx.respond(embed=embed, ephemeral=is_ephemeral)
+		self.select_callback.options = [
+			discord.SelectOption(
+				label=f"{category["name"]} [{category["passed"]}/{category["total"]}]",
+				value=category["name"],
+				default=True if category["name"] == "Primary" else False,
+			) for category in categories_to_add
+		]
 
-	@contracts_group.command(name="user", description="Get contracts user info")
-	async def user(
+	@discord.ui.select(
+		placeholder="Change contract category"
+	)
+	async def select_callback(self, select: discord.ui.Select, interaction: discord.Interaction):
+		if interaction.user.id != self.sender.id:
+			await interaction.respond("You are not allowed to change the category!",ephemeral=True)
+			return
+		selected_category = select.values[0]
+
+		for select_option in select.options:
+			select_option.default = False
+			if select_option.value == selected_category:
+				select_option.default = True	
+
+		await interaction.edit(embed=_create_user_contracts_embed(selected_category, self.contracts_user, self.target), view=self)
+
+class Contracts(commands.Cog):
+	def __init__(self, bot: commands.Bot):
+		self.bot = bot
+		self.logger = logging.getLogger("bot.contracts")
+
+		if not self.logger.handlers:
+			file_handler = logging.FileHandler("logs/contracts.log")
+			file_handler.setFormatter(FILE_LOGGING_FORMATTER)
+			console_handler = logging.StreamHandler()
+			console_handler.setFormatter(CONSOLE_LOGGING_FORMATTER)
+			self.logger.addHandler(file_handler)
+			self.logger.addHandler(console_handler)
+			
+			self.logger.setLevel(logging.INFO)
+	
+	contracts_group = discord.SlashCommandGroup(
+		name="contracts",
+		description="Contracts related commands",
+		guild_ids=BOT_CONFIG.guild_ids,
+	)
+	user_group = contracts_group.create_subgroup(
+		name="user",
+		description="User contracts related commands",
+		guild_ids=BOT_CONFIG.guild_ids,
+	)
+
+	@user_group.command(name="get", description="Get status for all contracts")
+	async def get(
 		self, 
 		ctx: discord.ApplicationContext, 
-		username: discord.Option(str, name="username", description="User to check", required=False, autocomplete=get_contract_usernames), # type: ignore
+		username: discord.Option(str, name="username", description="Optionally check for another user", required=False, autocomplete=get_contracts_usernames), # type: ignore
 		is_ephemeral: discord.Option(bool, name="hidden", description="Whether you want the response only visible to you", default=False) # type: ignore
 	):
-		user: discord.Member = None
+		selected_member: discord.member = None
 		if username is None:
-			user = ctx.author
+			selected_member = ctx.author
 			username = ctx.author.name
 		else:
-			user = _get_member_from_username(self.bot, username)
-	
-		contract_database, last_updated_timestamp = _get_sheet_data_and_update()
-		contract_user = contract_database["users"].get(username, None)
-		if not contract_user:
-			not_found_embed = discord.Embed(title="User Info", color=discord.Color.red(), description="User not found! If this is a mistake please ping <@546659584727580692>")
+			selected_member = get_member_from_username(self.bot, username)
+		
+		season, _ = get_season_data()
+		contracts_user = season.users.get(username, None)
+		if not contracts_user:
+			not_found_embed = discord.Embed(title="Contracts", color=discord.Color.red(), description="User not found! If this is a mistake please ping <@546659584727580692>")
 			await ctx.respond(embed=not_found_embed, ephemeral=True)
 			return
 
-		contracts_embed = _get_base_embed(last_updated_timestamp, username, contract_user, user)
-		contracts_embed.description = (
-			f"**Rep**: {contract_user["rep"]}\n" +
-			f"**Contractor**: {contract_user["contractor"]}\n" +
-			(f"**List**: {contract_user["list_url"]}" if contract_user["list_url"] != "" else "")
+		await ctx.respond(
+			embed=_create_user_contracts_embed("Primary", contracts_user, selected_member),
+			ephemeral=is_ephemeral,
+			view=ContractsView(
+				contracts_user=contracts_user,
+				target_member=selected_member,
+				sender=ctx.author
+			)
 		)
-		contracts_embed.add_field(name="Preferences", value=contract_user["preferences"], inline=True)
-		contracts_embed.add_field(name="Bans", value=contract_user["bans"], inline=True)
 
-		await ctx.respond(embed=contracts_embed, ephemeral=is_ephemeral)
-
-	@contracts_group.command(name="info", description="Get info regarding a type of contract")
+	@user_group.command(name="type", description="Get information regarding a type of contract")
 	async def info(
 		self,
 		ctx: discord.ApplicationContext,
 		contract_type: discord.Option(str, name="type", description="Type of contract to check", required=True, choices=list(DASHBOARD_ROW_NAMES.values())), # type: ignore
-		username: discord.Option(str, name="username", description="User to check", required=False, autocomplete=get_contract_usernames), # type: ignore
+		username: discord.Option(str, name="username", description="User to check", required=False, autocomplete=get_contracts_usernames), # type: ignore
 		is_ephemeral: discord.Option(bool, name="hidden", description="Whether you want the response only visible to you", default=False) # type: ignore
 	):
-		user: discord.Member = None
+		selected_member: discord.Member = None
 		if username is None:
-			user = ctx.author
+			selected_member = ctx.author
 			username = ctx.author.name
 		else:
-			user = _get_member_from_username(self.bot, username)
+			selected_member = get_member_from_username(self.bot, username)
 	
-		contract_database, last_updated_timestamp = _get_sheet_data_and_update()
-		contract_user = contract_database["users"].get(username, None)
+		season, last_updated_timestamp = get_season_data()
+		contract_user = season.users.get(username, None)
 		if not contract_user:
 			not_found_embed = discord.Embed(color=discord.Color.red(), description="User not found! If this is a mistake please ping <@546659584727580692>")
 			await ctx.respond(embed=not_found_embed, ephemeral=True)
 			return
 
-		if contract_type not in contract_user["contracts"]:
+		if contract_type not in contract_user.contracts:
 			not_found_embed = discord.Embed(color=discord.Color.red(), description="Contract not found! If this is a mistake please ping <@546659584727580692>")
 			await ctx.respond(embed=not_found_embed, ephemeral=True)
 			return
 		
-		contract_data = contract_user["contracts"][contract_type]
+		contract_data = contract_user.contracts[contract_type]
 
-		contracts_embed = _get_base_embed(last_updated_timestamp, username, contract_user, user)
+		contracts_embed = get_common_embed(last_updated_timestamp, contract_user, selected_member)
 		contracts_embed.title = contract_type
-		contracts_embed.url = contract_data["review_url"] if contract_data["review_url"] != "" else None
+		contracts_embed.url = contract_data.review_url if contract_data.review_url != "" else None
 		contracts_embed.description = (
-			f"**Name**: {contract_data["name"]}\n" +
-			f"**Medium**: {contract_data["medium"]}\n" +
-			(f"**{"Contractor" if contract_data["medium"] != "Game" else "Sponsor"}**: {contract_data["contractor"]}\n" if contract_data["contractor"] != "" else "")
+			f"**Name**: {contract_data.name}\n" +
+			f"**Medium**: {contract_data.medium}\n" +
+			(f"**{"Contractor" if contract_data.medium != "Game" else "Sponsor"}**: {contract_data.contractor}\n" if contract_data.contractor != "" else "")
 		)
-		contract_status = contract_data["status"] if contract_data["status"] != "" else "PENDING"
+		contract_status = contract_data.status if contract_data.status != "" else "PENDING"
 		contracts_embed.add_field(name="Status", value=contract_status.lower().capitalize(), inline=True)
-		contracts_embed.add_field(name="Score", value=contract_data["rating"], inline=True)
-		contracts_embed.add_field(name="Progress", value=contract_data["progress"], inline=True)
+		contracts_embed.add_field(name="Score", value=contract_data.rating, inline=True)
+		contracts_embed.add_field(name="Progress", value=contract_data.progress, inline=True)
 		
 		await ctx.respond(embed=contracts_embed, ephemeral=is_ephemeral)
 
-	@user_command(name="Get Contracts", guild_ids=config["debug_servers"])
-	async def user_command_get(self, ctx: discord.ApplicationContext, user: discord.User):
-		contract_database, last_updated_timestamp = _get_sheet_data_and_update()
-		contract_user = contract_database["users"].get(user.name, None)
+	@user_group.command(name="profile", description="Get a user's profile")
+	async def profile(
+		self, 
+		ctx: discord.ApplicationContext, 
+		username: discord.Option(str, name="username", description="User to check", required=False, autocomplete=get_contracts_usernames), # type: ignore
+		is_ephemeral: discord.Option(bool, name="hidden", description="Whether you want the response only visible to you", default=False) # type: ignore
+	):
+		selected_member: discord.Member = None
+		if username is None:
+			selected_member = ctx.author
+			username = ctx.author.name
+		else:
+			selected_member = get_member_from_username(self.bot, username)
+	
+		season, last_updated_timestamp = get_season_data()
+		contract_user = season.users.get(username, None)
 		if not contract_user:
+			not_found_embed = discord.Embed(title="User Info", color=discord.Color.red(), description="User not found! If this is a mistake please ping <@546659584727580692>")
+			await ctx.respond(embed=not_found_embed, ephemeral=True)
+			return
+
+		contracts_embed = get_common_embed(last_updated_timestamp, contract_user, selected_member)
+		contracts_embed.description = (
+			f"**Rep**: {contract_user.rep}\n" +
+			f"**Contractor**: {contract_user.contractor}\n" +
+			(f"**List**: {contract_user.list_url}" if contract_user.list_url != "" else "")
+		)
+		contracts_embed.add_field(name="Preferences", value=contract_user.preferences, inline=True)
+		contracts_embed.add_field(name="Bans", value=contract_user.bans, inline=True)
+
+		await ctx.respond(embed=contracts_embed, ephemeral=is_ephemeral)
+
+	@discord.user_command(name="Get User Contracts", guild_ids=BOT_CONFIG.guild_ids)
+	async def get_user_command(self, ctx: discord.ApplicationContext, user: discord.User):		
+		season, _ = get_season_data()
+		contracts_user = season.users.get(user.name, None)
+		if not contracts_user:
 			not_found_embed = discord.Embed(title="Contracts", color=discord.Color.red(), description="User not found! If this is a mistake please ping <@546659584727580692>")
 			await ctx.respond(embed=not_found_embed, ephemeral=True)
 			return
+
+		await ctx.respond(
+			embed=_create_user_contracts_embed("Primary", contracts_user, user),
+			ephemeral=True,
+			view=ContractsView(
+				contracts_user=contracts_user,
+				target_member=user,
+				sender=ctx.author
+			)
+		)
+
+	@contracts_group.command(name="stats", description="Check the current season's stats")
+	async def stats(
+		self, 
+		ctx: discord.ApplicationContext, 
+		is_ephemeral: discord.Option(bool, name="hidden", description="Whether you want the response only visible to you", default=False) # type: ignore
+	):
+		season, last_updated_timestamp = get_season_data()
+		season_stats = season.stats
+		embed = get_common_embed(last_updated_timestamp)
+		embed.title = "Contracts Winter 2025"
+		embed.description = (
+			f"Season ending on **<t:1746943200:D>** at **<t:1746943200:t>**\n" +
+			f"Users passed: {season_stats.users_passed}/{season_stats.users} ({get_percentage(season_stats.users_passed,season_stats.users)}%)\n" +
+			f"Contracts passed: {season_stats.contracts_passed}/{season_stats.contracts} ({get_percentage(season_stats.contracts_passed,season_stats.contracts)}%)"
+		)
+		for contract_type, type_stats in season_stats.contract_types.items():
+			embed.add_field(name=f"{contract_type} ({get_percentage(type_stats[0], type_stats[1])}%)", value=f"{type_stats[0]}/{type_stats[1]}")
 		
-		contracts_passed = 0
-		contracts_embed = _get_base_embed(last_updated_timestamp, user.name, contract_user, user)
-		for contract_type in contract_user["contracts"]:
-			contract_data = contract_user["contracts"][contract_type]
-			contract_name = contract_data["name"]
-			field_symbol = "✅" if contract_data["passed"] else "❌"
-			if contract_name == "-":
-				continue
-			elif contract_name == "PLEASE SELECT":
-				contract_name = f"__**{contract_name}**__"
-				field_symbol = "⚠️"
-
-			if contract_data["passed"] == True:
-				contracts_passed += 1
-
-			contracts_embed.add_field(name=f"{contract_type} {field_symbol}", value=contract_name, inline=True)
-		contracts_embed.title = f"Contracts ({contracts_passed}/{len(contract_user["contracts"].keys())})"
-		await ctx.respond(embed=contracts_embed, ephemeral=True)
+		await ctx.respond(embed=embed, ephemeral=is_ephemeral)
 
 
-	@commands.command()
-	@commands.is_owner()
-	async def get_database(self, ctx: commands.Context):
-		contract_database, _ = _get_sheet_data_and_update()
+	@commands.command(
+		name="contracts",
+		help="Get status for all your contracts",
+		description="Get status for all your contracts",
+		aliases=["get"]
+	)
+	async def get_text(self, ctx: commands.Context, username: str = None):
+		selected_member: discord.member = None
+		if username is None:
+			selected_member = ctx.author
+			username = ctx.author.name
+		else:
+			selected_member = get_member_from_username(self.bot, username)
 		
-		database_file = discord.File(io.BytesIO(json.dumps(contract_database, indent=4).encode("utf-8")))
-		database_file.filename = "database.json"
-		expire_datetime = datetime.datetime.now(datetime.UTC) + datetime.timedelta(seconds=30)
-		await ctx.reply(content=f"Message will expire <t:{int(expire_datetime.timestamp())}:R>", file=database_file, view=DeleteMessageView(30, ctx.author.id), delete_after=30)
-
-	@commands.command()
-	@commands.is_owner()
-	async def purge_cache(self, ctx: commands.Context):
-		cache.clear()
-		await ctx.reply("Cache purged!! Next command will request updated data.",delete_after=3)
-
-	@commands.command()
-	@commands.is_owner()
-	async def get_users(self, ctx: commands.Context, rep: str = "*", passed_status: str = "*"):
-		contract_database, _ = _get_sheet_data_and_update()
-		rep = rep.replace(" ", "-").lower()
-		passed_status = passed_status.lower()
-		if passed_status not in ["all", "*", "passed", "failed", "pending"]:
-			await ctx.reply("Invalid status! Use `all`, `*`, `passed`, `failed` or `pending`")
-			return
-		if rep not in ["all", "*"] and rep not in [user["rep"].replace(" ", "-").lower() for user in contract_database["users"].values()]:
-			await ctx.reply("Invalid rep! Use `all`, `*` or a valid rep")
+		season, _ = get_season_data()
+		contracts_user = season.users.get(username, None)
+		if not contracts_user:
+			not_found_embed = discord.Embed(title="Contracts", color=discord.Color.red(), description="User not found! If this is a mistake please ping <@546659584727580692>")
+			await ctx.reply(embed=not_found_embed, delete_after=3)
 			return
 
-		pending_ids = []
-		pending_usernames = []
-		if passed_status == "pending":
-			passed_status = ""
-		for username, user in contract_database["users"].items():
-			if passed_status not in ["all", "*"] and user["status"].lower() != passed_status:
-				continue
-			if rep not in ["all", "*"] and user["rep"].replace(" ", "-").lower() != rep:	
-				continue
+		await ctx.reply(
+			embed=_create_user_contracts_embed("Primary", contracts_user, selected_member),
+			view=ContractsView(
+				contracts_user=contracts_user,
+				target_member=selected_member,
+				sender=ctx.author
+			),
+			mention_author=False,
+		)
 
-			member = _get_member_from_username(self.bot, username)
-			pending_usernames.append(username)
-			if member:
-				pending_ids.append(member.id)
+	@commands.command(
+		name="stats",
+		help="Check the season's stats",
+		description="Check the season's statss",
+	)
+	async def stats_text(self, ctx: commands.Context):
+		season, last_updated_timestamp = get_season_data()
+		season_stats = season.stats
+		embed = get_common_embed(last_updated_timestamp)
+		embed.title = "Contracts Winter 2025"
+		embed.description = (
+			f"Season ending on **<t:1746943200:D>** at **<t:1746943200:t>**\n" +
+			f"Users passed: {season_stats.users_passed}/{season_stats.users} ({get_percentage(season_stats.users_passed,season_stats.users)}%)\n" +
+			f"Contracts passed: {season_stats.contracts_passed}/{season_stats.contracts} ({get_percentage(season_stats.contracts_passed,season_stats.contracts)}%)"
+		)
+		for contract_type, type_stats in season_stats.contract_types.items():
+			embed.add_field(name=f"{contract_type} ({get_percentage(type_stats[0], type_stats[1])}%)", value=f"{type_stats[0]}/{type_stats[1]}")
+		
+		await ctx.reply(embed=embed,mention_author=False)
 
-		if len(pending_usernames) == 0:
-			await ctx.reply("No users found with those filters!")
-			return
-
-		usernames_file = discord.File(io.BytesIO("\n".join(pending_usernames).encode("utf-8")))
-		usernames_file.filename = "usernames.txt"
-
-		if len(pending_ids) != 0:
-			mentions_file = discord.File(io.BytesIO("\n".join([f"<@{userid}>" for userid in pending_ids]).encode("utf-8")))
-			mentions_file.filename = "mentions.txt"
-
-		expire_datetime = datetime.datetime.now(datetime.UTC) + datetime.timedelta(seconds=300)
-		await ctx.reply(content=f"Message will expire <t:{int(expire_datetime.timestamp())}:R>", files=[usernames_file, mentions_file] if len(pending_ids) != 0 else [usernames_file], view=DeleteMessageView(300, ctx.author.id), delete_after=300)
-
-def setup(bot:commands.Bot):
+def setup(bot: commands.Bot):
 	bot.add_cog(Contracts(bot))

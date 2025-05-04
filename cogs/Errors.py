@@ -1,0 +1,67 @@
+import discord
+import logging
+from config import BOT_CONFIG, FILE_LOGGING_FORMATTER, CONSOLE_LOGGING_FORMATTER
+from discord.ext import commands
+
+class Errors(commands.Cog):
+	def __init__(self, bot: commands.Bot):
+		self.bot = bot
+		self.logger = logging.getLogger("bot.errors")
+
+		if not self.logger.handlers:
+			file_handler = logging.FileHandler("logs/errors.log")
+			file_handler.setFormatter(FILE_LOGGING_FORMATTER)
+			console_handler = logging.StreamHandler()
+			console_handler.setFormatter(CONSOLE_LOGGING_FORMATTER)
+			self.logger.addHandler(file_handler)
+			self.logger.addHandler(console_handler)
+
+			self.logger.setLevel(logging.ERROR)
+	
+	@commands.Cog.listener()
+	async def on_command_error(self, ctx: commands.Context, error):
+		error_type = "Unknown Error"
+		description = "An unexpected error occured."
+		if isinstance(error, commands.CommandNotFound):
+			return
+		elif isinstance(error, commands.NotOwner):
+			error_type = "Owner-only command"
+			description = f"This command is restricted to {self.bot.user.global_name}'s owner."
+		elif isinstance(error, commands.MissingPermissions):
+			error_type = "Missing Permissions"
+			description = f"You do not have enough permissions to use this command.\nMissing permissions: {", ".join(error.missing_permissions)}"
+		elif isinstance(error, commands.BotMissingPermissions):
+			error_type = "Bot Missing Permissions"
+			description = f"The bot is missing the required permissions to perform this command.\nMissing permissions: {", ".join(error.missing_permissions)}"
+		elif isinstance(error, commands.CommandOnCooldown):
+			error_type = "Cooldown"
+			description = f"You may retry again in **{error.retry_after:.2f}** seconds."
+		
+		embed = discord.Embed(description=error,color=discord.Color.red())
+		embed.title = error_type
+		embed.description = description
+		embed.set_footer(text=f"Requested by @{ctx.author.name}", icon_url=ctx.author.display_avatar.url)
+		await ctx.reply(embed=embed, delete_after=5)
+
+		self.logger.error(f"Command error: {error_type} - {error}")
+		self.logger.exception("Traceback:")
+
+	@commands.Cog.listener()
+	async def on_application_command_error(self, ctx: discord.ApplicationContext, error: discord.DiscordException):
+		error = getattr(error, "original", error)
+		error_type = "Unknown Error"
+		description = "An unexpected error occured."
+		if isinstance(error, commands.CommandOnCooldown):
+			error_type = "Cooldown"
+			description = f"You may retry again in **{error.retry_after:.2f}** seconds."
+		
+		embed = discord.Embed(color=discord.Color.red())
+		embed.title = error_type
+		embed.description = description
+		embed.set_footer(text=f"Requested by @{ctx.author.name}", icon_url=ctx.author.display_avatar.url)
+		await ctx.respond(embed=embed, ephemeral=True)
+
+		self.logger.error(f"Application command error: {error_type} - {error}")
+
+def setup(bot: commands.Bot):
+	bot.add_cog(Errors(bot))

@@ -160,7 +160,7 @@ class Contracts(commands.Cog):
 	#	guild_ids=BOT_CONFIG.guild_ids,
 	#)
 
-	@contracts_group.command(name="get", description="Get status for all contracts")
+	@contracts_group.command(name="get", description="Get the state of someone's contracts")
 	async def get(
 		self, 
 		ctx: discord.ApplicationContext, 
@@ -307,7 +307,7 @@ class Contracts(commands.Cog):
 		await ctx.respond(embed=embed, ephemeral=is_ephemeral)
 
 
-	@commands.command(name="contracts", help="Get status for all your contracts", aliases=["get", "g", "c"])
+	@commands.command(name="get", help="Get the state of someone's contracts", aliases=["contracts", "g", "c"])
 	@commands.cooldown(rate=5, per=5, type=commands.BucketType.user)
 	async def get_text(self, ctx: commands.Context, username: str = None, enable_upcoming_select: bool = False):
 		selected_member: discord.member = None

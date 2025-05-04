@@ -72,7 +72,7 @@ CONTRACT_NAME_MEDIUM_REGEX = r"(.*) \((.*)\)"
 
 SPREADSHEET_ID = "19aueoNx6BBU6amX7DhKGU8kHVauHWcSGiGKMzFSGkGc"
 GET_SHEET_DATA_URL = f"https://sheets.googleapis.com/v4/spreadsheets/{SPREADSHEET_ID}/values:batchGet"
-SHEET_DATA_CACHE_DURATION = 6
+SHEET_DATA_CACHE_DURATION = 1
 
 season_sheet_cache = Cache(CACHE_TYPE='filesystem', CACHE_DIR='cache')
 logger = logging.getLogger("bot.contracts")

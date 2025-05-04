@@ -27,6 +27,16 @@ async def get_contracts_usernames(ctx: discord.AutocompleteContext):
 	matching: list[str] = [username.lower() for username in season.users if ctx.value.strip().lower() in username.lower()]
 	return matching
 
+async def get_contracts_types(ctx: discord.AutocompleteContext):
+	username = ctx.options.get("username")
+	if username is None:
+		username = ctx.interaction.user.name
+	season, _ = get_season_data()
+	user = season.get_user(username)
+	if not user:
+		return []
+	return user.contracts.keys()
+
 def get_common_embed(timestamp: float, contracts_user: Optional[contracts.User] = None, discord_member: Optional[discord.Member] = None) -> discord.Embed:
 	embed = discord.Embed(color=BASE_EMBED_COLOR)
 	if contracts_user:
@@ -143,13 +153,13 @@ class Contracts(commands.Cog):
 		description="Contracts related commands",
 		guild_ids=BOT_CONFIG.guild_ids,
 	)
-	user_group = contracts_group.create_subgroup(
-		name="user",
-		description="User contracts related commands",
-		guild_ids=BOT_CONFIG.guild_ids,
-	)
+	#user_group = contracts_group.create_subgroup(
+	#	name="user",
+	#	description="User contracts related commands",
+	#	guild_ids=BOT_CONFIG.guild_ids,
+	#)
 
-	@user_group.command(name="get", description="Get status for all contracts")
+	@contracts_group.command(name="get", description="Get status for all contracts")
 	async def get(
 		self, 
 		ctx: discord.ApplicationContext, 
@@ -180,7 +190,7 @@ class Contracts(commands.Cog):
 			#)
 		)
 
-	@user_group.command(name="type", description="Get information regarding a type of contract")
+	@contracts_group.command(name="type", description="Get information regarding a type of contract")
 	async def type(
 		self,
 		ctx: discord.ApplicationContext,
@@ -224,7 +234,7 @@ class Contracts(commands.Cog):
 		
 		await ctx.respond(embed=contracts_embed, ephemeral=is_ephemeral)
 
-	@user_group.command(name="profile", description="Get a user's profile")
+	@contracts_group.command(name="profile", description="Get a user's profile")
 	async def profile(
 		self, 
 		ctx: discord.ApplicationContext, 

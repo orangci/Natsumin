@@ -10,13 +10,13 @@ def clear():
 	else:
 		os.system("clear")
 
-	
 load_dotenv()
 bot = commands.Bot(
 	command_prefix=BOT_CONFIG.prefix,
 	status=discord.Status.online,
 	activity=discord.CustomActivity(name="Doing contracts"),
 	intents=discord.Intents.all(),
+	case_insensitive=True,
 	allowed_mentions=discord.AllowedMentions(
 		everyone=False, roles=False, users=True, replied_user=False
 	)

@@ -77,7 +77,7 @@ def _create_user_contracts_embed(selected_category: str, user: contracts.User, t
 
 			embed.add_field(
 				name=f"{category_contract} {field_symbol}",
-				value=contract_data.name,
+				value=(f"[{contract_name}]({contract_data.review_url})" if contract_data.review_url != "" else contract_name),
 				inline=enable_inline
 			)
 

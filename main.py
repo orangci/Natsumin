@@ -10,7 +10,7 @@ def clear():
 	else:
 		os.system("clear")
 
-
+	
 load_dotenv()
 bot = commands.Bot(
 	command_prefix=BOT_CONFIG.prefix,

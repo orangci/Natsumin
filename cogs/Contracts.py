@@ -306,12 +306,7 @@ class Contracts(commands.Cog):
 		await ctx.respond(embed=embed, ephemeral=is_ephemeral)
 
 
-	@commands.command(
-		name="contracts",
-		help="Get status for all your contracts",
-		description="Get status for all your contracts",
-		aliases=["get", "get_contracts"]
-	)
+	@commands.command(name="contracts", help="Get status for all your contracts", aliases=["get", "get_contracts"])
 	async def get_text(self, ctx: commands.Context, username: str = None):
 		selected_member: discord.member = None
 		if username is None:
@@ -337,11 +332,7 @@ class Contracts(commands.Cog):
 			mention_author=False,
 		)
 
-	@commands.command(
-		name="stats",
-		help="Check the season's stats",
-		description="Check the season's statss",
-	)
+	@commands.command(name="stats", help="Check the season's stats")
 	async def stats_text(self, ctx: commands.Context):
 		season, last_updated_timestamp = get_season_data()
 		season_stats = season.stats

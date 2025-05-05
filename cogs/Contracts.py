@@ -4,7 +4,7 @@ import math
 import discord
 from typing import Optional
 from config import BOT_CONFIG, BASE_EMBED_COLOR, CONSOLE_LOGGING_FORMATTER, FILE_LOGGING_FORMATTER
-from discord.ext import commands
+from discord.ext import commands, tasks
 import contracts
 from contracts import get_season_data, DASHBOARD_ROW_NAMES
 from shared import get_member_from_username
@@ -150,7 +150,14 @@ class Contracts(commands.Cog):
 			self.logger.addHandler(console_handler)
 			
 			self.logger.setLevel(logging.INFO)
-	
+
+	def cog_unload(self):
+		self.change_user_status.cancel()
+
+	@commands.Cog.listener()
+	async def on_ready(self):
+		self.change_user_status.start()
+
 	contracts_group = discord.SlashCommandGroup(
 		name="contracts",
 		description="Contracts related commands",
@@ -380,6 +387,14 @@ class Contracts(commands.Cog):
 		contracts_embed.add_field(name="Bans", value=contract_user.bans, inline=True)
 
 		await ctx.reply(embed=contracts_embed)
+
+	@tasks.loop(minutes=30)
+	async def change_user_status(self):
+		season, _ = get_season_data()
+		await self.bot.change_presence(
+			status=discord.Status.online,
+			activity=discord.CustomActivity(name=f"{season.stats.users_passed}/{season.stats.users} users passed | %help")
+		)
 
 def setup(bot: commands.Bot):
 	bot.add_cog(Contracts(bot))

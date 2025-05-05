@@ -1,15 +1,8 @@
 import discord
-import logging
 from discord.ext import commands
-from config import BOT_CONFIG, FILE_LOGGING_FORMATTER
+from config import BOT_CONFIG
 import os
 from dotenv import load_dotenv
-
-discord_logger = logging.getLogger("discord")
-discord_logger.setLevel(logging.DEBUG)
-disc_file_handler = logging.FileHandler("logs/discord.log", encoding="utf-8", mode="w")
-disc_file_handler.setFormatter(FILE_LOGGING_FORMATTER)
-discord_logger.addHandler(disc_file_handler)
 
 def clear():
 	if os.name == 'nt':
@@ -21,7 +14,7 @@ load_dotenv()
 bot = commands.Bot(
 	command_prefix=BOT_CONFIG.prefix,
 	status=discord.Status.online,
-	activity=discord.CustomActivity(name="Doing contracts"),
+	activity=discord.CustomActivity(name="?/? users passed | %%help"),
 	intents=discord.Intents.all(),
 	case_insensitive=True,
 	allowed_mentions=discord.AllowedMentions(

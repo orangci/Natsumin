@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 discord_logger = logging.getLogger("discord")
 discord_logger.setLevel(logging.DEBUG)
-disc_file_handler = logging.FileHandler("logs/discord.log", encoding="utf-8")
+disc_file_handler = logging.FileHandler("logs/discord.log", encoding="utf-8", mode="w")
 disc_file_handler.setFormatter(FILE_LOGGING_FORMATTER)
 discord_logger.addHandler(disc_file_handler)
 

@@ -1,8 +1,15 @@
 import discord
+import logging
 from discord.ext import commands
-from config import BOT_CONFIG
+from config import BOT_CONFIG, FILE_LOGGING_FORMATTER
 import os
 from dotenv import load_dotenv
+
+discord_logger = logging.getLogger("discord")
+discord_logger.setLevel(logging.DEBUG)
+disc_file_handler = logging.FileHandler("logs/discord.log", encoding="utf-8")
+disc_file_handler.setFormatter(FILE_LOGGING_FORMATTER)
+discord_logger.addHandler(disc_file_handler)
 
 def clear():
 	if os.name == 'nt':

@@ -142,7 +142,7 @@ class Contracts(commands.Cog):
 		self.logger = logging.getLogger("bot.contracts")
 
 		if not self.logger.handlers:
-			file_handler = logging.FileHandler("logs/contracts.log")
+			file_handler = logging.FileHandler("logs/contracts.log", encoding="utf-8")
 			file_handler.setFormatter(FILE_LOGGING_FORMATTER)
 			console_handler = logging.StreamHandler()
 			console_handler.setFormatter(CONSOLE_LOGGING_FORMATTER)

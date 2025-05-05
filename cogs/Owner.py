@@ -29,7 +29,7 @@ class Owner(commands.Cog):
 		self.logger = logging.getLogger("bot.owner")
 
 		if not self.logger.handlers:
-			file_handler = logging.FileHandler("logs/owner.log")
+			file_handler = logging.FileHandler("logs/owner.log", encoding="utf-8")
 			file_handler.setFormatter(FILE_LOGGING_FORMATTER)
 			console_handler = logging.StreamHandler()
 			console_handler.setFormatter(CONSOLE_LOGGING_FORMATTER)

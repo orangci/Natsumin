@@ -9,7 +9,7 @@ class Other(commands.Cog):
 		self.logger = logging.getLogger("bot.other")
 
 		if not self.logger.handlers:
-			file_handler = logging.FileHandler("logs/other.log")
+			file_handler = logging.FileHandler("logs/other.log", encoding="utf-8")
 			file_handler.setFormatter(FILE_LOGGING_FORMATTER)
 			console_handler = logging.StreamHandler()
 			console_handler.setFormatter(CONSOLE_LOGGING_FORMATTER)

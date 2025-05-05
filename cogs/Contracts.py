@@ -6,7 +6,7 @@ from typing import Optional
 from config import BOT_CONFIG, BASE_EMBED_COLOR, CONSOLE_LOGGING_FORMATTER, FILE_LOGGING_FORMATTER
 from discord.ext import commands
 import contracts
-from contracts import get_season_data, SHEET_DATA_CACHE_DURATION, DASHBOARD_ROW_NAMES
+from contracts import get_season_data, DASHBOARD_ROW_NAMES
 from shared import get_member_from_username
 
 contract_categories = {
@@ -47,6 +47,7 @@ def get_common_embed(timestamp: float, contracts_user: Optional[contracts.User] 
 			url=contracts_user.list_url if contracts_user.list_url != "" else None,
 			icon_url=discord_member.display_avatar.url if discord_member else None
 		)
+	"""
 	last_updated_datetime = datetime.datetime.fromtimestamp(timestamp, datetime.UTC)
 	next_update_datetime = last_updated_datetime + datetime.timedelta(hours=SHEET_DATA_CACHE_DURATION)
 	current_datetime = datetime.datetime.now(datetime.UTC)
@@ -58,6 +59,7 @@ def get_common_embed(timestamp: float, contracts_user: Optional[contracts.User] 
 		text=f"Data updating in {int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}",
 		icon_url="https://cdn.discordapp.com/emojis/998705274074435584.webp?size=4096"
 	)
+	"""
 	return embed
 
 def _create_user_contracts_embed(selected_category: str, user: contracts.User, target: discord.Member, enable_inline: bool = True) -> discord.Embed:

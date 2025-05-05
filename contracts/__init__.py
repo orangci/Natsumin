@@ -72,9 +72,9 @@ CONTRACT_NAME_MEDIUM_REGEX = r"(.*) \((.*)\)"
 
 SPREADSHEET_ID = "19aueoNx6BBU6amX7DhKGU8kHVauHWcSGiGKMzFSGkGc"
 GET_SHEET_DATA_URL = f"https://sheets.googleapis.com/v4/spreadsheets/{SPREADSHEET_ID}/values:batchGet"
-SHEET_DATA_CACHE_DURATION = 1
+#SHEET_DATA_CACHE_DURATION = 1
 
-season_sheet_cache = Cache(CACHE_TYPE='filesystem', CACHE_DIR='cache')
+season_sheet_cache = Cache()#(CACHE_TYPE='filesystem', CACHE_DIR='cache')
 logger = logging.getLogger("bot.contracts")
 if not logger.handlers:
 	file_handler = logging.FileHandler("logs/contracts.log")
@@ -303,7 +303,7 @@ def _convert_sheet_to_season(sheet_data) -> Season:
 
 	return season
 
-@season_sheet_cache.memoize(timeout=SHEET_DATA_CACHE_DURATION * 60 * 60)
+@season_sheet_cache.memoize(timeout=2.5 * 60)#SHEET_DATA_CACHE_DURATION * 60 * 60)
 def get_season_data() -> tuple[Season, float]:
 	with httpx.Client() as client:
 		response = client.get(GET_SHEET_DATA_URL, params={
@@ -322,5 +322,5 @@ def get_season_data() -> tuple[Season, float]:
 			"key": os.getenv("GOOGLE_API_KEY")
 		})
 		response.raise_for_status()
-		logger.info(f"Season data has been cached for {SHEET_DATA_CACHE_DURATION} hour(s)!")
+		#logger.info(f"Season data has been cached for {SHEET_DATA_CACHE_DURATION} hour(s)!")
 		return _convert_sheet_to_season(response.json()), datetime.datetime.now(datetime.UTC).timestamp()

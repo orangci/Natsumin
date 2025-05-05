@@ -2,6 +2,7 @@ import datetime
 import logging
 import math
 import random
+import re
 import discord
 from typing import Optional
 from config import BOT_CONFIG, BASE_EMBED_COLOR, CONSOLE_LOGGING_FORMATTER, FILE_LOGGING_FORMATTER
@@ -94,13 +95,12 @@ def _create_user_contracts_embed(selected_category: str, user: contracts.User, s
 	contracts_total = len(user.contracts)
 	embed.title = f"Contracts [{contracts_passed}/{contracts_total}]"
 
-	very_nice_message = ""
 	nice_message_type = "same_user"
 	nice_message_category = "not_started"
 	contractor_user = season.get_user(user.contractor)
 	if sender.name == contractor_user.name:
 		nice_message_type = "is_contractor"
-	elif sender.id == target.id:
+	elif target and sender.id == target.id:
 		nice_message_type = "same_user"
 	else:
 		nice_message_type = "different_user"
@@ -210,7 +210,7 @@ class Contracts(commands.Cog):
 		username: discord.Option(str, name="username", description="Optionally check for another user", required=False, autocomplete=get_contracts_usernames), # type: ignore
 		is_ephemeral: discord.Option(bool, name="hidden", description="Whether you want the response only visible to you", default=False) # type: ignore
 	):
-		selected_member: discord.member = None
+		selected_member: discord.Member = None
 		if username is None:
 			selected_member = ctx.author
 			username = ctx.author.name
@@ -353,12 +353,20 @@ class Contracts(commands.Cog):
 	@commands.command(name="get", help="Get the state of someone's contracts", aliases=["contracts", "g", "c"])
 	@commands.cooldown(rate=5, per=5, type=commands.BucketType.user)
 	async def get_text(self, ctx: commands.Context, username: str = None, enable_upcoming_select: bool = False):
-		selected_member: discord.member = None
+		selected_member: discord.Member = None
 		if username is None:
 			selected_member = ctx.author
 			username = ctx.author.name
 		else:
-			selected_member = get_member_from_username(self.bot, username)
+			match = re.match(r"<@!?(\d+)>", username)
+			if match:
+				user_id = int(match.group(1))
+				guild: discord.Guild = ctx.guild
+				selected_member = guild.get_member(user_id) or await self.bot.get_or_fetch_user(user_id)
+				if selected_member:
+					username = selected_member.name
+			else:
+				selected_member = get_member_from_username(self.bot, username)
 		
 		season, _ = get_season_data()
 		contracts_user = season.get_user(username)
@@ -398,12 +406,20 @@ class Contracts(commands.Cog):
 	@commands.command(name="profile", help="Get a user's profile", aliases=["p"])
 	@commands.cooldown(rate=5, per=5, type=commands.BucketType.user)
 	async def profile_text(self, ctx: commands.Context, username: str = None):
-		selected_member: discord.member = None
+		selected_member: discord.Member = None
 		if username is None:
 			selected_member = ctx.author
 			username = ctx.author.name
 		else:
-			selected_member = get_member_from_username(self.bot, username)
+			match = re.match(r"<@!?(\d+)>", username)
+			if match:
+				user_id = int(match.group(1))
+				guild: discord.Guild = ctx.guild
+				selected_member = guild.get_member(user_id) or await self.bot.get_or_fetch_user(user_id)
+				if selected_member:
+					username = selected_member.name
+			else:
+				selected_member = get_member_from_username(self.bot, username)
 	
 		season, last_updated_timestamp = get_season_data()
 		contract_user = season.get_user(username)

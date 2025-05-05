@@ -49,7 +49,7 @@ class Errors(commands.Cog):
 		embed.set_footer(text=f"Requested by @{ctx.author.name}", icon_url=ctx.author.display_avatar.url)
 		await ctx.reply(embed=embed, delete_after=5)
 
-		self.logger.error(f"Command error: {error_type} - {error}")
+		self.logger.error(f"@{ctx.author.name} -> Command error: {error_type} - {error}")
 		#self.logger.exception("Traceback:")
 
 	@commands.Cog.listener()
@@ -67,7 +67,7 @@ class Errors(commands.Cog):
 		embed.set_footer(text=f"Requested by @{ctx.author.name}", icon_url=ctx.author.display_avatar.url)
 		await ctx.respond(embed=embed, ephemeral=True)
 
-		self.logger.error(f"Application command error: {error_type} - {error}")
+		self.logger.error(f"@{ctx.author.name} -> Application command error: {error_type} - {error}")
 
 def setup(bot: commands.Bot):
 	bot.add_cog(Errors(bot))

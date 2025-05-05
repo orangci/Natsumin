@@ -1,13 +1,14 @@
 import datetime
 import logging
 import math
+import random
 import discord
 from typing import Optional
 from config import BOT_CONFIG, BASE_EMBED_COLOR, CONSOLE_LOGGING_FORMATTER, FILE_LOGGING_FORMATTER
 from discord.ext import commands, tasks
 import contracts
 from contracts import get_season_data, DASHBOARD_ROW_NAMES
-from shared import get_member_from_username
+from shared import get_member_from_username, nice_messages
 
 contract_categories = {
 	"All": ["Base Contract", "Challenge Contract", "Veteran Special", "Movie Special", "VN Special", "Indie Special", "Extreme Special", "Base Buddy", "Challenge Buddy"],
@@ -62,8 +63,8 @@ def get_common_embed(timestamp: float, contracts_user: Optional[contracts.User] 
 	"""
 	return embed
 
-def _create_user_contracts_embed(selected_category: str, user: contracts.User, target: discord.Member, enable_inline: bool = True) -> discord.Embed:
-	_, last_updated_timestamp = get_season_data()
+def _create_user_contracts_embed(selected_category: str, user: contracts.User, sender: discord.Member, target: discord.Member, enable_inline: bool = True) -> discord.Embed:
+	season, last_updated_timestamp = get_season_data()
 	embed = get_common_embed(timestamp=last_updated_timestamp, contracts_user=user, discord_member=target)
 	#embed.description = f"**Rep:** {user.rep}\n**Contractor:** {user.contractor}\n### Contracts [{len([c for c in user.contracts.values() if c.passed])}/{len(user.contracts)}]"
 	for category_contract in contract_categories.get(selected_category):
@@ -83,7 +84,34 @@ def _create_user_contracts_embed(selected_category: str, user: contracts.User, t
 				inline=enable_inline
 			)
 
-	embed.title = f"Contracts [{len([c for c in user.contracts.values() if c.passed])}/{len(user.contracts)}]"
+	contracts_passed = len([c for c in user.contracts.values() if c.passed])
+	contracts_total = len(user.contracts)
+	embed.title = f"Contracts [{contracts_passed}/{contracts_total}]"
+
+	very_nice_message = ""
+	nice_message_type = "same_user"
+	nice_message_category = "not_started"
+	contractor_user = season.get_user(user.contractor)
+	if sender.name == contractor_user.name:
+		nice_message_type = "is_contractor"
+	elif sender.id == target.id:
+		nice_message_type = "same_user"
+	else:
+		nice_message_type = "different_user"
+	
+	if contracts_passed == contracts_total:
+		nice_message_category = "finished"
+	elif contracts_passed >= contracts_total/2:
+		nice_message_category = "halfway"
+	elif contracts_passed < contracts_total/2 and contracts_passed > 0:
+		nice_message_category = "started"
+	elif contracts_passed <= 0:
+		nice_message_category = "not_started"
+
+	embed.set_footer(
+		text=random.choice(nice_messages[nice_message_category][nice_message_type]),
+		icon_url="https://cdn.discordapp.com/emojis/998705274074435584.webp?size=4096"
+	)
 	return embed
 
 class ContractsView(discord.ui.View):
@@ -134,7 +162,7 @@ class ContractsView(discord.ui.View):
 			if select_option.value == selected_category:
 				select_option.default = True	
 
-		await interaction.edit(embed=_create_user_contracts_embed(selected_category, self.contracts_user, self.target, False), view=self)
+		await interaction.edit(embed=_create_user_contracts_embed(selected_category, self.contracts_user, self.sender, self.target, False), view=self)
 
 class Contracts(commands.Cog):
 	def __init__(self, bot: commands.Bot):
@@ -191,7 +219,7 @@ class Contracts(commands.Cog):
 			return
 
 		await ctx.respond(
-			embed=_create_user_contracts_embed("All", contracts_user, selected_member),
+			embed=_create_user_contracts_embed("All", contracts_user, ctx.author, selected_member),
 			ephemeral=is_ephemeral,
 			#view=ContractsView(
 			#	contracts_user=contracts_user,
@@ -286,7 +314,7 @@ class Contracts(commands.Cog):
 			return
 
 		await ctx.respond(
-			embed=_create_user_contracts_embed("All", contracts_user, user),
+			embed=_create_user_contracts_embed("All", contracts_user, ctx.author, user),
 			ephemeral=True,
 			#view=ContractsView(
 			#	contracts_user=contracts_user,
@@ -333,10 +361,10 @@ class Contracts(commands.Cog):
 			return
 
 		if not enable_upcoming_select:
-			await ctx.reply(embed=_create_user_contracts_embed("All", contracts_user, selected_member))
+			await ctx.reply(embed=_create_user_contracts_embed("All", contracts_user, ctx.author, selected_member))
 		else:
 			await ctx.reply(
-				embed=_create_user_contracts_embed("Primary", contracts_user, selected_member, False),
+				embed=_create_user_contracts_embed("Primary", contracts_user, ctx.author, selected_member, False),
 				view=ContractsView(
 					contracts_user=contracts_user,
 					target_member=selected_member,

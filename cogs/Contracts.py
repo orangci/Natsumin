@@ -48,19 +48,25 @@ def get_common_embed(timestamp: float, contracts_user: Optional[contracts.User] 
 			url=contracts_user.list_url if contracts_user.list_url != "" else None,
 			icon_url=discord_member.display_avatar.url if discord_member else None
 		)
-	"""
-	last_updated_datetime = datetime.datetime.fromtimestamp(timestamp, datetime.UTC)
-	next_update_datetime = last_updated_datetime + datetime.timedelta(hours=SHEET_DATA_CACHE_DURATION)
+	
+	deadline_timestamp = datetime.datetime.fromtimestamp(1746943200, datetime.UTC)
 	current_datetime = datetime.datetime.now(datetime.UTC)
-	difference = next_update_datetime - current_datetime
+	difference = deadline_timestamp - current_datetime
 	difference_seconds = max(difference.total_seconds(), 0)
-	hours, remainder = divmod(difference_seconds, 3600)
-	minutes, seconds = divmod(remainder, 60)
-	embed.set_footer(
-		text=f"Data updating in {int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}",
-		icon_url="https://cdn.discordapp.com/emojis/998705274074435584.webp?size=4096"
-	)
-	"""
+
+	if difference_seconds > 0:
+		days, remainder = divmod(difference_seconds, 86400) 
+		hours, remainder = divmod(remainder, 3600)
+		minutes, seconds = divmod(remainder, 60)
+		embed.set_footer(
+			text=f"Deadline in {int(days):02d}:{int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}",
+			icon_url="https://cdn.discordapp.com/emojis/998705274074435584.webp?size=4096"
+		)
+	else:
+		embed.set_footer(
+			text=f"Season ended.",
+			icon_url="https://cdn.discordapp.com/emojis/998705274074435584.webp?size=4096"
+		)
 	return embed
 
 def _create_user_contracts_embed(selected_category: str, user: contracts.User, sender: discord.Member, target: discord.Member, enable_inline: bool = True) -> discord.Embed:
@@ -109,8 +115,8 @@ def _create_user_contracts_embed(selected_category: str, user: contracts.User, s
 		nice_message_category = "not_started"
 
 	embed.set_footer(
-		text=random.choice(nice_messages[nice_message_category][nice_message_type]),
-		icon_url="https://cdn.discordapp.com/emojis/998705274074435584.webp?size=4096"
+		text=f"{embed.footer.text} | {random.choice(nice_messages[nice_message_category][nice_message_type])}",
+		icon_url=embed.footer.icon_url
 	)
 	return embed
 

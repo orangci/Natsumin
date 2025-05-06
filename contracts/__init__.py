@@ -8,7 +8,7 @@ from typing import Optional
 from dataclasses import dataclass, field
 from config import CONSOLE_LOGGING_FORMATTER, FILE_LOGGING_FORMATTER
 
-@dataclass
+@dataclass(slots=True)
 class Contract:
 	name: str = field()
 	passed: bool = field(default=False, repr=False)
@@ -19,7 +19,7 @@ class Contract:
 	review_url: str = field(default="", repr=False)
 	medium: str = field(default="", repr=False)
 
-@dataclass
+@dataclass(slots=True)
 class User:
 	name: str = field()
 	status: str = field(default="", repr=False)
@@ -40,7 +40,7 @@ class User:
 		users_with_this_contractor = [user for user in season.users.values() if user.contractor == self.name]
 		return users_with_this_contractor[0] if len(users_with_this_contractor) > 0 else None		
 
-@dataclass
+@dataclass(slots=True)
 class SeasonStats:
 	users_passed: int = -1
 	users: int = -1
@@ -48,7 +48,7 @@ class SeasonStats:
 	contracts: int = -1
 	contract_types: dict[str, list[int]] = field(default_factory=dict, repr=False)
 
-@dataclass
+@dataclass(slots=True)
 class Season:
 	users: dict[str, User] = field(default_factory=dict, repr=False)
 	stats: SeasonStats = None
@@ -74,7 +74,8 @@ SPREADSHEET_ID = "19aueoNx6BBU6amX7DhKGU8kHVauHWcSGiGKMzFSGkGc"
 GET_SHEET_DATA_URL = f"https://sheets.googleapis.com/v4/spreadsheets/{SPREADSHEET_ID}/values:batchGet"
 #SHEET_DATA_CACHE_DURATION = 1
 
-season_sheet_cache = Cache()#(CACHE_TYPE='filesystem', CACHE_DIR='cache')
+season_sheet_client = httpx.Client(headers={"Accept-Encoding": "gzip, deflate"})
+season_sheet_cache = Cache(CACHE_DEFAULT_TIMEOUT=60)
 logger = logging.getLogger("bot.contracts")
 if not logger.handlers:
 	file_handler = logging.FileHandler("logs/contracts.log", encoding="utf-8")
@@ -303,24 +304,24 @@ def _convert_sheet_to_season(sheet_data) -> Season:
 
 	return season
 
-@season_sheet_cache.memoize(timeout=2.5 * 60)#SHEET_DATA_CACHE_DURATION * 60 * 60)
+@season_sheet_cache.memoize(timeout=2.5 * 60)
 def get_season_data() -> tuple[Season, float]:
-	with httpx.Client() as client:
-		response = client.get(GET_SHEET_DATA_URL, params={
-			"majorDimension": "ROWS",
-			"valueRenderOption": "FORMATTED_VALUE",
-			"ranges": [
-				"Dashboard!A2:U394",
-				"Base!A2:AG394",
-				"Veteran Special!A2:I167",
-				"VN Special!A2:G126",
-				"Movie Special!A2:H243",
-				"Indie Special!A2:H136",
-				"Extreme Special!A2:G95",
-				"Buddying!A2:N68"
-			],
-			"key": os.getenv("GOOGLE_API_KEY")
-		})
-		response.raise_for_status()
-		#logger.info(f"Season data has been cached for {SHEET_DATA_CACHE_DURATION} hour(s)!")
-		return _convert_sheet_to_season(response.json()), datetime.datetime.now(datetime.UTC).timestamp()
+	response = season_sheet_client.get(GET_SHEET_DATA_URL, params={
+		"majorDimension": "ROWS",
+		"valueRenderOption": "FORMATTED_VALUE",
+		"ranges": [
+			"Dashboard!A2:U394",
+			"Base!A2:AG394",
+			"Veteran Special!A2:I167",
+			"VN Special!A2:G126",
+			"Movie Special!A2:H243",
+			"Indie Special!A2:H136",
+			"Extreme Special!A2:G95",
+			"Buddying!A2:N68"
+		],
+		"key": os.getenv("GOOGLE_API_KEY")
+	})
+	response.raise_for_status()
+	sheet_data = response.json()
+	response.close()
+	return _convert_sheet_to_season(sheet_data), datetime.datetime.now(datetime.UTC).timestamp()

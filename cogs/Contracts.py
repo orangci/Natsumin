@@ -1,4 +1,5 @@
 import datetime
+import gc
 import logging
 import math
 import random
@@ -95,6 +96,7 @@ def _create_user_contracts_embed(selected_category: str, user: contracts.User, s
 	contracts_total = len(user.contracts)
 	embed.title = f"Contracts [{contracts_passed}/{contracts_total}]"
 
+	"""
 	nice_message_type = "same_user"
 	nice_message_category = "not_started"
 	contractor_user = season.get_user(user.contractor)
@@ -118,6 +120,7 @@ def _create_user_contracts_embed(selected_category: str, user: contracts.User, s
 		text=f"{embed.footer.text} | {random.choice(nice_messages[nice_message_category][nice_message_type])}",
 		icon_url=embed.footer.icon_url
 	)
+	"""
 	return embed
 
 class ContractsView(discord.ui.View):
@@ -445,6 +448,7 @@ class Contracts(commands.Cog):
 			status=discord.Status.online,
 			activity=discord.CustomActivity(name=f"{season.stats.users_passed}/{season.stats.users} users passed | %help")
 		)
+		gc.collect()
 
 def setup(bot: commands.Bot):
 	bot.add_cog(Contracts(bot))

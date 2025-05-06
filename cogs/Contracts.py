@@ -381,9 +381,9 @@ class Contracts(commands.Cog):
 		else:
 			season_stats = season.stats
 		embed = get_common_embed(last_updated_timestamp)
-		embed.title = "Contracts Winter 2025" if not rep else f"Contracts Winter 2025 - {rep.upper()} Stats"
+		embed.title = "Contracts Winter 2025" if not rep else f"Contracts Winter 2025 - {rep.upper()}"
 		embed.description = (
-			f"Season ending on **<t:1746943200:D>** at **<t:1746943200:t>**\n" +
+			(f"Season ending on **<t:1746943200:D>** at **<t:1746943200:t>**\n" if not rep else "") +
 			f"Users passed: {season_stats.users_passed}/{season_stats.users} ({get_percentage(season_stats.users_passed,season_stats.users)}%)\n" +
 			f"Contracts passed: {season_stats.contracts_passed}/{season_stats.contracts} ({get_percentage(season_stats.contracts_passed,season_stats.contracts)}%)"
 		)
@@ -469,9 +469,9 @@ class Contracts(commands.Cog):
 		else:
 			season_stats = season.stats
 		embed = get_common_embed(last_updated_timestamp)
-		embed.title = "Contracts Winter 2025" if not rep else f"Contracts Winter 2025 - {rep.upper()} Stats"
+		embed.title = "Contracts Winter 2025" if not rep else f"Contracts Winter 2025 - {rep.upper()}"
 		embed.description = (
-			f"Season ending on **<t:1746943200:D>** at **<t:1746943200:t>**\n" +
+			(f"Season ending on **<t:1746943200:D>** at **<t:1746943200:t>**\n" if not rep else "") +
 			f"Users passed: {season_stats.users_passed}/{season_stats.users} ({get_percentage(season_stats.users_passed,season_stats.users)}%)\n" +
 			f"Contracts passed: {season_stats.contracts_passed}/{season_stats.contracts} ({get_percentage(season_stats.contracts_passed,season_stats.contracts)}%)"
 		)

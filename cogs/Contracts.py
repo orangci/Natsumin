@@ -42,7 +42,7 @@ async def get_contracts_types(ctx: discord.AutocompleteContext):
 
 async def get_contracts_reps(ctx: discord.AutocompleteContext):
 	season, _ = get_season_data()
-	matching: list[str] = [rep for rep in season.reps if ctx.value.strip().lower() in rep.lower()]
+	matching: list[str] = [rep.upper() for rep in season.reps if ctx.value.strip().lower() in rep.lower()]
 	return matching
 
 def get_common_embed(timestamp: float, contracts_user: Optional[contracts.User] = None, discord_member: Optional[discord.Member] = None) -> discord.Embed:

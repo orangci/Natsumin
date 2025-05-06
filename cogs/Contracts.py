@@ -40,6 +40,11 @@ async def get_contracts_types(ctx: discord.AutocompleteContext):
 		return []
 	return user.contracts.keys()
 
+async def get_contracts_reps(ctx: discord.AutocompleteContext):
+	season, _ = get_season_data()
+	matching: list[str] = [rep for rep in season.reps if ctx.value.strip().lower() in rep.lower()]
+	return matching
+
 def get_common_embed(timestamp: float, contracts_user: Optional[contracts.User] = None, discord_member: Optional[discord.Member] = None) -> discord.Embed:
 	embed = discord.Embed(color=BASE_EMBED_COLOR)
 	if contracts_user:
@@ -335,13 +340,48 @@ class Contracts(commands.Cog):
 	@contracts_group.command(name="stats", description="Check the current season's stats")
 	async def stats(
 		self, 
-		ctx: discord.ApplicationContext, 
+		ctx: discord.ApplicationContext,
+		rep: discord.Option(str, name="rep", description="Optionally check stats for a specific rep", required=False, autocomplete=get_contracts_reps), # type: ignore
 		is_ephemeral: discord.Option(bool, name="hidden", description="Whether you want the response only visible to you", default=False) # type: ignore
 	):
+		rep: Optional[str] = rep
 		season, last_updated_timestamp = get_season_data()
-		season_stats = season.stats
+		season_stats: contracts.SeasonStats = None
+		if rep:
+			if rep.lower() not in [rep.lower() for rep in season.reps]:
+				await ctx.respond("Invalid rep!", ephemeral=True)
+				return
+			users_passed = 0
+			users_total = 0
+			contracts_passed = 0
+			contracts_total = 0
+			contract_types = {}
+
+			for user in season.users.values():
+				if user.rep.lower() != rep.lower(): continue
+				users_total += 1
+				if user.status == "PASSED":
+					users_passed += 1
+				contracts_passed += len([c for c in user.contracts.values() if c.passed])
+				contracts_total += len(user.contracts)
+				for contract_type, contract_data in user.contracts.items():
+					if contract_type not in contract_types:
+						contract_types[contract_type] = [0, 0]
+					contract_types[contract_type][1] += 1
+					if contract_data.passed:
+						contract_types[contract_type][0] += 1
+
+			season_stats = contracts.SeasonStats(
+				users_passed=users_passed,
+				users=users_total,
+				contracts_passed=contracts_passed,
+				contracts=contracts_total,
+				contract_types=contract_types
+			)
+		else:
+			season_stats = season.stats
 		embed = get_common_embed(last_updated_timestamp)
-		embed.title = "Contracts Winter 2025"
+		embed.title = "Contracts Winter 2025" if not rep else f"Contracts Winter 2025 - {rep} Stats"
 		embed.description = (
 			f"Season ending on **<t:1746943200:D>** at **<t:1746943200:t>**\n" +
 			f"Users passed: {season_stats.users_passed}/{season_stats.users} ({get_percentage(season_stats.users_passed,season_stats.users)}%)\n" +
@@ -391,11 +431,45 @@ class Contracts(commands.Cog):
 
 	@commands.command(name="stats", help="Check the season's stats", aliases=["s"])
 	@commands.cooldown(rate=5, per=5, type=commands.BucketType.user)
-	async def stats_text(self, ctx: commands.Context):
+	async def stats_text(self, ctx: commands.Context, *, rep: Optional[str] = None):
 		season, last_updated_timestamp = get_season_data()
-		season_stats = season.stats
+		season_stats: contracts.SeasonStats = None
+		if rep:
+			if rep.lower() not in [rep.lower() for rep in season.reps]:
+				await ctx.reply("Invalid rep!", delete_after=3)
+				return
+
+			users_passed = 0
+			users_total = 0
+			contracts_passed = 0
+			contracts_total = 0
+			contract_types = {}
+
+			for user in season.users.values():
+				if user.rep.lower() != rep.lower(): continue
+				users_total += 1
+				if user.status == "PASSED":
+					users_passed += 1
+				contracts_passed += len([c for c in user.contracts.values() if c.passed])
+				contracts_total += len(user.contracts)
+				for contract_type, contract_data in user.contracts.items():
+					if contract_type not in contract_types:
+						contract_types[contract_type] = [0, 0]
+					contract_types[contract_type][1] += 1
+					if contract_data.passed:
+						contract_types[contract_type][0] += 1
+
+			season_stats = contracts.SeasonStats(
+				users_passed=users_passed,
+				users=users_total,
+				contracts_passed=contracts_passed,
+				contracts=contracts_total,
+				contract_types=contract_types
+			)
+		else:
+			season_stats = season.stats
 		embed = get_common_embed(last_updated_timestamp)
-		embed.title = "Contracts Winter 2025"
+		embed.title = "Contracts Winter 2025" if not rep else f"Contracts Winter 2025 - {rep} Stats"
 		embed.description = (
 			f"Season ending on **<t:1746943200:D>** at **<t:1746943200:t>**\n" +
 			f"Users passed: {season_stats.users_passed}/{season_stats.users} ({get_percentage(season_stats.users_passed,season_stats.users)}%)\n" +

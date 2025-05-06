@@ -52,6 +52,7 @@ class SeasonStats:
 class Season:
 	users: dict[str, User] = field(default_factory=dict, repr=False)
 	stats: SeasonStats = None
+	reps: list[str] = field(default_factory=list, repr=False)
 
 	def get_user(self, username: str) -> Optional["User"]:
 		return self.users.get(username, None)
@@ -161,6 +162,8 @@ def _get_season_dashboard_data(sheet_data) -> Season:
 
 def _add_basechallenge_data(season: Season, sheet_data):
 	rows: list[list[str]] = sheet_data["valueRanges"][1]["values"]
+	reps: list[str] = []
+	lowered_reps: list[str] = []
 
 	for row in rows:
 		username = row[3].strip().lower()
@@ -170,7 +173,10 @@ def _add_basechallenge_data(season: Season, sheet_data):
 			continue
 
 		user: User = season.users[username]
-		user.rep = row[2]
+		user.rep = row[2].strip()
+		if user.rep.lower() not in lowered_reps:
+			lowered_reps.append(user.rep.lower())
+			reps.append(user.rep)
 		user.contractor = contractor
 		user.list_url = _get_first_url(row[7])
 		user.veto_used = True if row[10] == "TRUE" else False
@@ -194,6 +200,8 @@ def _add_basechallenge_data(season: Season, sheet_data):
 			challenge_contract.rating = row[28]
 			challenge_contract.review_url = _get_first_url(row[32] if len(row) > 32 else "")
 			challenge_contract.medium = row[13]
+
+	season.reps = reps
 
 def _add_specials_data(season: Season, sheet_data):
 	# Veteran Special Sheet

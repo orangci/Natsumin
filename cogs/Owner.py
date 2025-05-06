@@ -63,7 +63,7 @@ class Owner(commands.Cog):
 		if passed_status not in ["all", "*", "passed", "failed", "pending"]:
 			await ctx.reply("Invalid status! Use `all`, `*`, `passed`, `failed` or `pending`")
 			return
-		if rep not in ["all", "*"] and rep not in [user["rep"].replace(" ", "-").lower() for user in season.users.values()]:
+		if rep not in ["all", "*"] and rep not in [user.rep.replace(" ", "-").lower() for user in season.users.values()]:
 			await ctx.reply("Invalid rep! Use `all`, `*` or a valid rep")
 			return
 
@@ -72,9 +72,9 @@ class Owner(commands.Cog):
 		if passed_status == "pending":
 			passed_status = ""
 		for username, user in season.users.items():
-			if passed_status not in ["all", "*"] and user["status"].lower() != passed_status:
+			if passed_status not in ["all", "*"] and user.status.lower() != passed_status:
 				continue
-			if rep not in ["all", "*"] and user["rep"].replace(" ", "-").lower() != rep:	
+			if rep not in ["all", "*"] and user.rep.replace(" ", "-").lower() != rep:	
 				continue
 
 			member = get_member_from_username(self.bot, username)
@@ -93,8 +93,10 @@ class Owner(commands.Cog):
 			mentions_file = discord.File(io.BytesIO("\n".join([f"<@{userid}>" for userid in pending_ids]).encode("utf-8")))
 			mentions_file.filename = "mentions.txt"
 
-		expire_datetime = datetime.datetime.now(datetime.UTC) + datetime.timedelta(seconds=300)
-		await ctx.reply(content=f"Message will expire <t:{int(expire_datetime.timestamp())}:R>", files=[usernames_file, mentions_file] if len(pending_ids) != 0 else [usernames_file], view=DeleteMessageView(300, ctx.author.id), delete_after=300)
+		await ctx.reply(
+			content=f"Found {len(pending_usernames)} users with the filters:\n- Rep: `{rep}`\n- Status: `{passed_status}`",
+			files=[usernames_file, mentions_file] if len(pending_ids) != 0 else [usernames_file]
+		)
 
 	@commands.command(hidden=True)
 	@commands.is_owner()

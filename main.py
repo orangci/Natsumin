@@ -5,13 +5,6 @@ import os
 from dotenv import load_dotenv
 
 
-def clear():
-    if os.name == "nt":
-        os.system("cls")
-    else:
-        os.system("clear")
-
-
 load_dotenv()
 bot = commands.Bot(
     command_prefix=BOT_CONFIG.prefix,
@@ -27,7 +20,7 @@ bot = commands.Bot(
 
 @bot.event
 async def on_ready():
-    clear()
+    os.system("cls" if os.name == "nt" else "clear")
     print(f"Logged in as {bot.user.name}#{bot.user.discriminator}!")
 
 

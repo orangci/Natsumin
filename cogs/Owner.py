@@ -189,6 +189,14 @@ class Owner(commands.Cog):
             )
             await ctx.reply(embed=embed, mention_author=False)
 
+    @commands.command(hidden=True, aliases=["rsc"])
+    @commands.is_owner()
+    async def reload_slash_command(self, ctx: commands.Context):
+        await self.bot.sync_commands()
+        embed = discord.Embed(color=BASE_EMBED_COLOR)
+        embed.description = "✅ Successfully synced bot application commands."
+        await ctx.reply(embed=embed, mention_author=False)
+
 
 def setup(bot: commands.Bot):
     bot.add_cog(Owner(bot))

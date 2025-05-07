@@ -39,13 +39,6 @@ class Stats(commands.Cog):
             self.logger.addHandler(console_handler)
             self.logger.setLevel(logging.INFO)
 
-    def cog_unload(self):
-        self.change_user_status.cancel()
-
-    @commands.Cog.listener()
-    async def on_ready(self):
-        self.change_user_status.start()
-
     async def build_stats_embed(self, rep: Optional[str] = None):
         season, last_updated_timestamp = await get_season_data()
 

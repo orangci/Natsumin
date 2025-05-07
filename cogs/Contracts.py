@@ -101,7 +101,7 @@ def get_percentage(num: float, total: float) -> int:
 
 async def get_contracts_reps(ctx: discord.AutocompleteContext):
 	season, _ = await get_season_data()
-	return [rep.upper() for rep in season.reps if ctx.value.strip().lower() in rep.lower()]
+	return [rep for rep in season.reps if ctx.value.strip().upper() in rep]
 
 
 async def get_contracts_usernames(ctx: discord.AutocompleteContext):
@@ -248,7 +248,7 @@ class Contracts(commands.Cog):
 	async def build_stats_embed(self, rep: Optional[str] = None):
 		season, last_updated_timestamp = await get_season_data()
 
-		if rep and rep.lower() not in [r.lower() for r in season.reps]:
+		if rep and rep.upper() not in season.reps:
 			return "Invalid rep!"
 
 		if not rep:
@@ -258,7 +258,7 @@ class Contracts(commands.Cog):
 			contract_types = {}
 
 			for user in season.users.values():
-				if user.rep.lower() != rep.lower():
+				if user.rep.upper() != rep.upper():
 					continue
 				users_total += 1
 				if user.status == "PASSED":
@@ -281,7 +281,7 @@ class Contracts(commands.Cog):
 			)
 
 		embed = get_common_embed(last_updated_timestamp)
-		embed.title = "Contracts Winter 2025" if not rep else f"Contracts Winter 2025 - {rep.upper()}"
+		embed.title = "Contracts Winter 2025" if not rep else f"Contracts Winter 2025 - {rep.upper()} [{season.reps[rep.upper()]}]"
 		embed.description = ""
 
 		if not rep:

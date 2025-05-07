@@ -51,12 +51,7 @@ class Other(commands.Cog):
 	async def ping(self, ctx: commands.Context):
 		ping_ms = round(self.bot.latency * 1000)
 
-		embed = discord.Embed(
-			color=BASE_EMBED_COLOR,
-			description=f"Success! {self.bot.user.name} is awake. Ping: {ping_ms}ms.",
-		)
-
-		await ctx.reply(embed=embed)
+		await ctx.reply(content=f"Pong! ({ping_ms}ms)")
 
 
 def setup(bot: commands.Bot):

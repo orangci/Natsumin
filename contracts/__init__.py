@@ -56,7 +56,7 @@ class SeasonStats:
 class Season:
 	users: dict[str, User] = field(default_factory=dict, repr=False)
 	stats: SeasonStats = None
-	reps: list[str] = field(default_factory=list, repr=False)
+	reps: dict[str, str] = field(default_factory=dict, repr=False)
 
 	def get_user(self, username: str) -> Optional["User"]:
 		return self.users.get(username, None)
@@ -78,7 +78,6 @@ CONTRACT_NAME_MEDIUM_REGEX = r"(.*) \((.*)\)"
 
 SPREADSHEET_ID = "19aueoNx6BBU6amX7DhKGU8kHVauHWcSGiGKMzFSGkGc"
 GET_SHEET_DATA_URL = f"https://sheets.googleapis.com/v4/spreadsheets/{SPREADSHEET_ID}/values:batchGet"
-# SHEET_DATA_CACHE_DURATION = 1
 
 
 logger = logging.getLogger("bot.contracts")
@@ -166,8 +165,6 @@ def _get_season_dashboard_data(sheet_data) -> Season:
 
 def _add_basechallenge_data(season: Season, sheet_data):
 	rows: list[list[str]] = sheet_data["valueRanges"][1]["values"]
-	reps: list[str] = []
-	lowered_reps: list[str] = []
 
 	for row in rows:
 		username = row[3].strip().lower()
@@ -177,10 +174,7 @@ def _add_basechallenge_data(season: Season, sheet_data):
 			continue
 
 		user: User = season.users[username]
-		user.rep = row[2].strip()
-		if user.rep.lower() not in lowered_reps:
-			lowered_reps.append(user.rep.lower())
-			reps.append(user.rep)
+		user.rep = row[2].strip().upper()
 		user.contractor = contractor
 		user.list_url = _get_first_url(row[7])
 		user.veto_used = True if row[10] == "TRUE" else False
@@ -204,8 +198,6 @@ def _add_basechallenge_data(season: Season, sheet_data):
 			challenge_contract.rating = row[28]
 			challenge_contract.review_url = _get_first_url(row[32] if len(row) > 32 else "")
 			challenge_contract.medium = row[13]
-
-	season.reps = reps
 
 
 def _add_specials_data(season: Season, sheet_data):
@@ -310,11 +302,21 @@ def _add_specials_data(season: Season, sheet_data):
 			buddy_challenge.medium = "Anime / Manga"
 
 
+def _add_reps_data(season: Season, sheet_data):
+	rows: list[list[str]] = sheet_data["valueRanges"][8]["values"]
+
+	for row in rows:
+		rep_name = row[0].strip().upper()
+		rep_odds = row[1].strip()
+		season.reps[rep_name] = rep_odds
+
+
 def _convert_sheet_to_season(sheet_data) -> Season:
 	season = _get_season_dashboard_data(sheet_data)
 
 	_add_basechallenge_data(season, sheet_data)
 	_add_specials_data(season, sheet_data)
+	_add_reps_data(season, sheet_data)
 
 	return season
 
@@ -346,6 +348,7 @@ async def get_season_data() -> tuple[Season, float]:
 				"Indie Special!A2:H136",
 				"Extreme Special!A2:G95",
 				"Buddying!A2:N68",
+				"Odds!A1:B49",
 			],
 			"key": os.getenv("GOOGLE_API_KEY"),
 		},

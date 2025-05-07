@@ -355,8 +355,18 @@ class Contracts(commands.Cog):
 		embed = get_common_embed(last_updated_timestamp, contract_user, member)
 		embed.description = f"> **Rep**: {contract_user.rep}"
 
-		contractor = discord.utils.get(ctx.guild.members, name=contract_user.contractor)
+		contractor: discord.Member = get_member_from_username(self.bot, contract_user.contractor)
+		contractees: list[str] = []  # List because theres like a few people that have 2 contractees for some reason
+		for user in season.users.values():
+			if user.contractor == contract_user.name:
+				member = get_member_from_username(self.bot, user.name)
+				if member:
+					contractees.append(member.mention)
+				else:
+					contractees.append(user.name)
+
 		embed.description += f"\n> **Contractor**: {contractor.mention if contractor else contract_user.contractor}"
+		embed.description += f"\n> **Contractee**: {', '.join(contractees)}"
 
 		if url := contract_user.list_url:
 			url_lower = url.lower()

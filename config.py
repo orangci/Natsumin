@@ -1,4 +1,5 @@
 import logging
+import discord
 import yaml
 import dataclasses
 import datetime
@@ -14,7 +15,7 @@ class Config:
 with open("config.yaml", "r") as file:
     BOT_CONFIG = Config(**yaml.full_load(file))
 
-BASE_EMBED_COLOR = 0xF5C2E7
+BASE_EMBED_COLOR = discord.Color.from_rgb(67, 79, 93)
 FILE_LOGGING_FORMATTER = logging.Formatter(
     "[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s", "%Y-%m-%d %H:%M:%S"
 )

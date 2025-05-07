@@ -409,6 +409,14 @@ class Contracts(commands.Cog):
 		else:
 			await ctx.respond(embed=embed, ephemeral=hidden)
 
+	@discord.user_command(name="Get User Profile", guild_ids=BOT_CONFIG.guild_ids)
+	async def get_user_profile(self, ctx: discord.ApplicationContext, user: discord.User):
+		embed = await self.build_profile_embed(ctx, user.name)
+		if isinstance(embed, str):
+			await ctx.respond(embed, ephemeral=True)
+		else:
+			await ctx.respond(embed=embed, ephemeral=True)
+
 	# ~~GET COMMAND
 	@contracts_group.command(name="get", description="Get the state of someone's contracts")
 	async def get(

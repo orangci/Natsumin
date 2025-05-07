@@ -53,7 +53,7 @@ class Errors(commands.Cog):
 			text=f"Requested by @{ctx.author.name}",
 			icon_url=ctx.author.display_avatar.url,
 		)
-		await ctx.reply(embed=embed, delete_after=5)
+		await ctx.reply(embed=embed)
 
 		self.logger.error(f"@{ctx.author.name} -> Command error: {error_type} - {error}")
 		# self.logger.exception("Traceback:")
@@ -74,7 +74,7 @@ class Errors(commands.Cog):
 			text=f"Requested by @{ctx.author.name}",
 			icon_url=ctx.author.display_avatar.url,
 		)
-		await ctx.respond(embed=embed, ephemeral=True)
+		await ctx.respond(embed=embed)
 
 		self.logger.error(f"@{ctx.author.name} -> Application command error: {error_type} - {error}")
 

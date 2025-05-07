@@ -328,7 +328,7 @@ class Contracts(commands.Cog):
 	async def stats_text(self, ctx: commands.Context, *, rep: Optional[str] = None):
 		embed = await self.build_stats_embed(rep)
 		if isinstance(embed, str):
-			await ctx.reply(embed, delete_after=3)
+			await ctx.reply(embed)
 		else:
 			await ctx.reply(embed=embed)
 
@@ -377,7 +377,7 @@ class Contracts(commands.Cog):
 	async def profile_text(self, ctx: commands.Context, username: str = None):
 		embed = await self.build_profile_embed(ctx, username)
 		if isinstance(embed, str):
-			await ctx.reply(embed, delete_after=3)
+			await ctx.reply(embed)
 		else:
 			await ctx.reply(embed=embed)
 
@@ -460,7 +460,7 @@ class Contracts(commands.Cog):
 		season, _ = await get_season_data()
 		contracts_user = season.get_user(actual_username)
 		if not contracts_user:
-			await ctx.reply("User not found!", delete_after=3)
+			await ctx.reply("User not found!")
 			return
 
 		embed = await _create_user_contracts_embed("All", contracts_user, ctx.author, member)

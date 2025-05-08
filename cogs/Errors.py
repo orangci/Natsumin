@@ -48,10 +48,6 @@ class Errors(commands.Cog):
 
 		embed = discord.Embed(description=error, color=discord.Color.red())
 		embed.description = f"{error_type}: {description}"
-		embed.set_footer(
-			text=f"Requested by @{ctx.author.name}",
-			icon_url=ctx.author.display_avatar.url,
-		)
 		await ctx.reply(embed=embed)
 
 		self.logger.error(f"@{ctx.author.name} -> Command error in {ctx.command}: {error_type} - {error}")
@@ -68,10 +64,6 @@ class Errors(commands.Cog):
 
 		embed = discord.Embed(color=discord.Color.red())
 		embed.description = f"{error_type}: {description}"
-		embed.set_footer(
-			text=f"Requested by @{ctx.author.name}",
-			icon_url=ctx.author.display_avatar.url,
-		)
 		await ctx.respond(embed=embed)
 
 		self.logger.error(f"@{ctx.author.name} -> Application command error in {ctx.command}: {error_type} - {error}")

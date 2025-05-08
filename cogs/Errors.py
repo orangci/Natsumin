@@ -1,7 +1,7 @@
-import discord
-import logging
 from config import FILE_LOGGING_FORMATTER, CONSOLE_LOGGING_FORMATTER
 from discord.ext import commands
+import logging
+import discord
 
 
 class Errors(commands.Cog):
@@ -47,15 +47,14 @@ class Errors(commands.Cog):
 			description = f"You may retry again in **{error.retry_after:.2f}** seconds."
 
 		embed = discord.Embed(description=error, color=discord.Color.red())
-		embed.title = error_type
-		embed.description = description
+		embed.description = f"{error_type}: {description}"
 		embed.set_footer(
 			text=f"Requested by @{ctx.author.name}",
 			icon_url=ctx.author.display_avatar.url,
 		)
 		await ctx.reply(embed=embed)
 
-		self.logger.error(f"@{ctx.author.name} -> Command error: {error_type} - {error}")
+		self.logger.error(f"@{ctx.author.name} -> Command error in {ctx.command}: {error_type} - {error}")
 		# self.logger.exception("Traceback:")
 
 	@commands.Cog.listener()
@@ -68,15 +67,14 @@ class Errors(commands.Cog):
 			description = f"You may retry again in **{error.retry_after:.2f}** seconds."
 
 		embed = discord.Embed(color=discord.Color.red())
-		embed.title = error_type
-		embed.description = description
+		embed.description = f"{error_type}: {description}"
 		embed.set_footer(
 			text=f"Requested by @{ctx.author.name}",
 			icon_url=ctx.author.display_avatar.url,
 		)
 		await ctx.respond(embed=embed)
 
-		self.logger.error(f"@{ctx.author.name} -> Application command error: {error_type} - {error}")
+		self.logger.error(f"@{ctx.author.name} -> Application command error in {ctx.command}: {error_type} - {error}")
 
 
 def setup(bot: commands.Bot):

@@ -5,7 +5,9 @@ from typing import Optional
 import datetime
 import logging
 import aiohttp
+import asyncio
 import os
+import gc
 import re
 
 
@@ -144,11 +146,7 @@ def _get_season_dashboard_data(sheet_data) -> Season:
 		if user_passed_contracts:
 			users_passed += 1
 
-		season.users[username] = User(
-			name=username,
-			status="PASSED" if status == "P" else "FAILED" if status == "F" else status,
-			contracts=contracts,
-		)
+		season.users[username] = User(name=username, status="PASSED" if status == "P" else "FAILED" if status == "F" else status, contracts=contracts)
 
 	season.stats = SeasonStats(
 		users=len(season.users),
@@ -354,3 +352,10 @@ async def get_season_data() -> tuple[Season, float]:
 		response.raise_for_status()
 		sheet_data = await response.json()
 		return _convert_sheet_to_season(sheet_data), datetime.datetime.now(datetime.UTC).timestamp()
+
+
+async def cache_reset_loop():
+	while True:
+		await asyncio.sleep(2.5 * 60)
+		get_season_data.cache_clear()
+		gc.collect()

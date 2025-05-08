@@ -35,11 +35,6 @@ class Other(commands.Cog):
 		embed.description += f"> **Ping**: {ping_ms}ms"
 		embed.description += f"\n> **Prefix**: {config.BOT_CONFIG.prefix}"
 		embed.description += f"\n> **Authors**: {', '.join(owner_names)}"
-
-		embed.set_footer(
-			text=f"Requested by {ctx.author.display_name}",
-			icon_url=ctx.author.avatar.url,
-		)
 		await ctx.reply(embed=embed)
 
 	@commands.command(help="Fetch information on the bot.", aliases=["latency"])

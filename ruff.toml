@@ -1,4 +1,11 @@
 line-length = 150
+fix = true
+show-fixes = true
+target-version = "py312"
 
 [format]
 indent-style = "tab"
+skip-magic-trailing-comma = true
+
+[analyze]
+detect-string-imports = true

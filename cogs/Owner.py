@@ -123,10 +123,7 @@ class Owner(commands.Cog):
 			return
 
 		if message.author.id != self.bot.user.id:
-			await ctx.reply(
-				"This command can only be used to delete the bot's messages!",
-				delete_after=3,
-			)
+			await ctx.reply("This command can only be used to delete the bot's messages!", delete_after=3)
 			return
 
 		await message.delete()
@@ -147,10 +144,7 @@ class Owner(commands.Cog):
 			embed = discord.Embed(color=discord.Color.red(), description=error_message)
 			await ctx.reply(embed=embed, mention_author=False)
 		else:
-			embed = discord.Embed(
-				color=BASE_EMBED_COLOR,
-				description="✅ Successfully reloaded all cogs.",
-			)
+			embed = discord.Embed(color=BASE_EMBED_COLOR, description="✅ Successfully reloaded all cogs.")
 			await ctx.reply(embed=embed, mention_author=False)
 
 	@commands.command(hidden=True, aliases=["rsc"])

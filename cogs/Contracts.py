@@ -24,23 +24,12 @@ contract_categories = {
 		"Challenge Buddy",
 	],
 	"Primary": ["Base Contract", "Challenge Contract"],
-	"Specials": [
-		"Veteran Special",
-		"Movie Special",
-		"VN Special",
-		"Indie Special",
-		"Extreme Special",
-	],
+	"Specials": ["Veteran Special", "Movie Special", "VN Special", "Indie Special", "Extreme Special"],
 	"Buddies": ["Base Buddy", "Challenge Buddy"],
 }
 
 
-async def _create_user_contracts_embed(
-	selected_category: str,
-	user: contracts.User,
-	sender: discord.Member,
-	target: discord.Member,
-) -> discord.Embed:
+async def _create_user_contracts_embed(selected_category: str, user: contracts.User, sender: discord.Member, target: discord.Member) -> discord.Embed:
 	season, last_updated_timestamp = await get_season_data()
 	embed = get_common_embed(last_updated_timestamp, user, target)
 
@@ -104,9 +93,7 @@ async def get_contracts_usernames(ctx: discord.AutocompleteContext):
 
 
 def get_common_embed(
-	timestamp: float,
-	contracts_user: Optional[contracts.User] = None,
-	discord_member: Optional[discord.Member] = None,
+	timestamp: float, contracts_user: Optional[contracts.User] = None, discord_member: Optional[discord.Member] = None
 ) -> discord.Embed:
 	embed = discord.Embed(color=config.BASE_EMBED_COLOR, description="")
 	if contracts_user:
@@ -214,11 +201,7 @@ async def build_stats_embed(rep: Optional[str] = None):
 			contracts_total += len(user.contracts)
 
 		season_stats = contracts.SeasonStats(
-			users_passed=users_passed,
-			users=users_total,
-			contracts_passed=contracts_passed,
-			contracts=contracts_total,
-			contract_types=contract_types,
+			users_passed=users_passed, users=users_total, contracts_passed=contracts_passed, contracts=contracts_total, contract_types=contract_types
 		)
 
 	embed = get_common_embed(last_updated_timestamp)
@@ -258,11 +241,7 @@ class Contracts(commands.Cog):
 
 			self.logger.setLevel(logging.INFO)
 
-	contracts_group = discord.SlashCommandGroup(
-		name="contracts",
-		description="Contracts related commands",
-		guild_ids=config.BOT_CONFIG.guild_ids,
-	)
+	contracts_group = discord.SlashCommandGroup(name="contracts", description="Contracts related commands", guild_ids=config.BOT_CONFIG.guild_ids)
 
 	# ~~TYPE COMMAND
 	@contracts_group.command(name="type", description="Get information regarding a type of contract")
@@ -270,24 +249,10 @@ class Contracts(commands.Cog):
 		self,
 		ctx: discord.ApplicationContext,
 		contract_type: discord.Option(
-			str,
-			description="Type of contract to check",
-			name="type",
-			required=True,
-			choices=list(DASHBOARD_ROW_NAMES.values()),
+			str, description="Type of contract to check", name="type", required=True, choices=list(DASHBOARD_ROW_NAMES.values())
 		),  # type: ignore
-		username: discord.Option(
-			str,
-			description="User to check",
-			required=False,
-			autocomplete=get_contracts_usernames,
-		),  # type: ignore
-		is_ephemeral: discord.Option(
-			bool,
-			name="hidden",
-			description="Whether you want the response only visible to you",
-			required=False,
-		),  # type: ignore
+		username: discord.Option(str, description="User to check", required=False, autocomplete=get_contracts_usernames),  # type: ignore
+		is_ephemeral: discord.Option(bool, name="hidden", description="Whether you want the response only visible to you", required=False),  # type: ignore
 	):
 		selected_member: discord.Member = None
 		if username is None:
@@ -300,16 +265,14 @@ class Contracts(commands.Cog):
 		contract_user = season.get_user(username)
 		if not contract_user:
 			not_found_embed = discord.Embed(
-				color=discord.Color.red(),
-				description="User not found! If this is a mistake please ping <@546659584727580692>",
+				color=discord.Color.red(), description="User not found! If this is a mistake please ping <@546659584727580692>"
 			)
 			await ctx.respond(embed=not_found_embed, ephemeral=True)
 			return
 
 		if contract_type not in contract_user.contracts:
 			not_found_embed = discord.Embed(
-				color=discord.Color.red(),
-				description="Contract not found! If this is a mistake please ping <@546659584727580692>",
+				color=discord.Color.red(), description="Contract not found! If this is a mistake please ping <@546659584727580692>"
 			)
 			await ctx.respond(embed=not_found_embed, ephemeral=True)
 			return
@@ -340,17 +303,8 @@ class Contracts(commands.Cog):
 	async def stats(
 		self,
 		ctx: discord.ApplicationContext,
-		rep: discord.Option(
-			str,
-			description="Optionally check stats for a specific rep",
-			required=False,
-			autocomplete=get_contracts_reps,
-		),  # type: ignore
-		hidden: discord.Option(
-			bool,
-			description="Whether you want the response only visible to you",
-			required=False,
-		),  # type: ignore
+		rep: discord.Option(str, description="Optionally check stats for a specific rep", required=False, autocomplete=get_contracts_reps),  # type: ignore
+		hidden: discord.Option(bool, description="Whether you want the response only visible to you", required=False),  # type: ignore
 	):
 		embed = await build_stats_embed(rep)
 		if isinstance(embed, str):
@@ -380,12 +334,7 @@ class Contracts(commands.Cog):
 	async def profile_slash(
 		self,
 		ctx: discord.ApplicationContext,
-		username: discord.Option(
-			str,
-			description="User to check",
-			required=False,
-			autocomplete=get_contracts_usernames,
-		),  # type: ignore
+		username: discord.Option(str, description="User to check", required=False, autocomplete=get_contracts_usernames),  # type: ignore
 		hidden: discord.Option(bool, description="Whether you want the response only visible to you", required=False),  # type: ignore
 	):
 		embed = await build_profile_embed(self.bot, ctx, username)
@@ -407,17 +356,8 @@ class Contracts(commands.Cog):
 	async def get(
 		self,
 		ctx: discord.ApplicationContext,
-		username: discord.Option(
-			str,
-			description="Optionally check for another user",
-			required=False,
-			autocomplete=get_contracts_usernames,
-		),  # type: ignore
-		hidden: discord.Option(
-			bool,
-			description="Whether you want the response only visible to you",
-			required=False,
-		),  # type: ignore
+		username: discord.Option(str, description="Optionally check for another user", required=False, autocomplete=get_contracts_usernames),  # type: ignore
+		hidden: discord.Option(bool, description="Whether you want the response only visible to you", required=False),  # type: ignore
 	):
 		member, actual_username = await _get_contracts_user_and_member(self.bot, ctx.author, username)
 		season, _ = await get_season_data()
@@ -425,9 +365,7 @@ class Contracts(commands.Cog):
 		if not contracts_user:
 			await ctx.respond(
 				embed=discord.Embed(
-					title="Contracts",
-					color=discord.Color.red(),
-					description="User not found! If this is a mistake please ping <@546659584727580692>",
+					title="Contracts", color=discord.Color.red(), description="User not found! If this is a mistake please ping <@546659584727580692>"
 				),
 				ephemeral=True,
 			)
@@ -442,9 +380,7 @@ class Contracts(commands.Cog):
 		if not contracts_user:
 			await ctx.respond(
 				embed=discord.Embed(
-					title="Contracts",
-					color=discord.Color.red(),
-					description="User not found! If this is a mistake please ping <@546659584727580692>",
+					title="Contracts", color=discord.Color.red(), description="User not found! If this is a mistake please ping <@546659584727580692>"
 				),
 				ephemeral=True,
 			)
@@ -452,11 +388,7 @@ class Contracts(commands.Cog):
 
 		await _send_contracts_embed_response(ctx, contracts_user, ctx.author, user, ephemeral=True)
 
-	@commands.command(
-		name="get",
-		help="Get the state of someone's contracts",
-		aliases=["contracts", "g", "c"],
-	)
+	@commands.command(name="get", help="Get the state of someone's contracts", aliases=["contracts", "g", "c"])
 	@commands.cooldown(rate=5, per=5, type=commands.BucketType.user)
 	async def get_text(self, ctx: commands.Context, username: str = None):
 		member, actual_username = await _get_contracts_user_and_member(self.bot, ctx.author, username)

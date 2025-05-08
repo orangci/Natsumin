@@ -162,7 +162,7 @@ async def build_profile_embed(bot, ctx, username: str = None):
 	for user in season.users.values():
 		if user.contractor == contract_user.name:
 			member = get_member_from_username(bot, user.name)
-			contractees.append(member.mention) if member else contractees.append(user.name)
+			contractees.append(f"{member.mention} ({user.name})") if member else contractees.append(user.name)
 
 	embed.description += (
 		f"\n> **Contractor**: {contractor.mention if contractor else contract_user.contractor} {f'({contractor.name})' if contractor else ''}"

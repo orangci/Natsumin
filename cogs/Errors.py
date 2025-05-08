@@ -27,7 +27,7 @@ class Errors(commands.Cog):
 			return
 		elif isinstance(error, commands.NotOwner):
 			error_type = "Owner-only command"
-			description = f"This command is restricted to {self.bot.user.global_name}'s owner."
+			description = f"This command is restricted to {self.bot.user.name}'s owner."
 		elif isinstance(error, commands.MissingPermissions):
 			error_type = "Missing Permissions"
 			description = f"You do not have enough permissions to use this command.\nMissing permissions: {', '.join(error.missing_permissions)}"

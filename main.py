@@ -1,9 +1,10 @@
-import discord
-from discord.ext import commands
 from config import BOT_CONFIG, BASE_EMBED_COLOR
-import os
+from contracts import garbage_collector
+from discord.ext import commands
 from dotenv import load_dotenv
-
+import asyncio
+import discord
+import os
 
 load_dotenv()
 bot = commands.Bot(
@@ -20,6 +21,7 @@ bot = commands.Bot(
 async def on_ready():
 	os.system("cls" if os.name == "nt" else "clear")
 	print(f"Logged in as {bot.user.name}#{bot.user.discriminator}!")
+	asyncio.run(garbage_collector())
 
 
 def recursive_load_cogs(path: str):
@@ -34,11 +36,7 @@ def recursive_load_cogs(path: str):
 
 class Help(commands.HelpCommand):
 	def get_command_signature(self, command):
-		return "%s%s %s" % (
-			self.context.clean_prefix,
-			command.qualified_name,
-			command.signature,
-		)
+		return "%s%s %s" % (self.context.clean_prefix, command.qualified_name, command.signature)
 
 	async def send_bot_help(self, mapping):
 		embed = discord.Embed(title="Help", color=BASE_EMBED_COLOR)

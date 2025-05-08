@@ -366,7 +366,3 @@ async def garbage_collector():
 	asyncio.create_task(cache_reset_loop())
 	while True:
 		await asyncio.sleep(3600)
-
-
-if __name__ == "__main__":
-	asyncio.run(garbage_collector())

@@ -1,5 +1,5 @@
 from config import BOT_CONFIG, BASE_EMBED_COLOR
-from contracts import garbage_collector
+from contracts import cache_reset_loop
 from discord.ext import commands
 from dotenv import load_dotenv
 import asyncio
@@ -21,7 +21,7 @@ bot = commands.Bot(
 async def on_ready():
 	os.system("cls" if os.name == "nt" else "clear")
 	print(f"Logged in as {bot.user.name}#{bot.user.discriminator}!")
-	asyncio.run(garbage_collector())
+	asyncio.create_task(cache_reset_loop())
 
 
 def recursive_load_cogs(path: str):

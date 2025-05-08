@@ -360,9 +360,3 @@ async def cache_reset_loop():
 		await get_season_data.clear()
 		gc.collect()
 		logger.info("Cache cleared.")
-
-
-async def garbage_collector():
-	asyncio.create_task(cache_reset_loop())
-	while True:
-		await asyncio.sleep(3600)

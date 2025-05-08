@@ -357,6 +357,5 @@ async def get_season_data() -> tuple[Season, float]:
 async def cache_reset_loop():
 	while True:
 		await asyncio.sleep(2.5 * 60)
-		await get_season_data.clear()
+		get_season_data.cache_clear()
 		gc.collect()
-		logger.info("Cache cleared.")

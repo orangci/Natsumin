@@ -5,7 +5,6 @@ from typing import Optional
 import datetime
 import logging
 import aiohttp
-import asyncio
 import os
 import re
 

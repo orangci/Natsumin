@@ -1,22 +1,15 @@
-import datetime
-import gc
-import logging
-import discord
-from typing import Optional
-import math
-import re
-from config import (
-	BOT_CONFIG,
-	BASE_EMBED_COLOR,
-	CONSOLE_LOGGING_FORMATTER,
-	FILE_LOGGING_FORMATTER,
-	DEADLINE_TIMESTAMP,
-	DEADLINE_TIMESTAMP_INT,
-)
-from discord.ext import commands, tasks
-import contracts
 from contracts import get_season_data, DASHBOARD_ROW_NAMES
 from shared import get_member_from_username
+from discord.ext import commands, tasks
+from typing import Optional
+import contracts
+import datetime
+import logging
+import discord
+import config
+import math
+import gc
+import re
 
 contract_categories = {
 	"All": [
@@ -115,7 +108,7 @@ def get_common_embed(
 	contracts_user: Optional[contracts.User] = None,
 	discord_member: Optional[discord.Member] = None,
 ) -> discord.Embed:
-	embed = discord.Embed(color=BASE_EMBED_COLOR, description="")
+	embed = discord.Embed(color=config.BASE_EMBED_COLOR, description="")
 	if contracts_user:
 		# if discord_member:
 		# embed.set_thumbnail(url=discord_member.display_avatar.url)
@@ -126,7 +119,7 @@ def get_common_embed(
 		)
 
 	current_datetime = datetime.datetime.now(datetime.UTC)
-	difference = DEADLINE_TIMESTAMP - current_datetime
+	difference = config.DEADLINE_TIMESTAMP - current_datetime
 	difference_seconds = max(difference.total_seconds(), 0)
 
 	if difference_seconds > 0:
@@ -138,10 +131,115 @@ def get_common_embed(
 			icon_url="https://cdn.discordapp.com/emojis/998705274074435584.webp?size=4096",
 		)
 	else:
-		embed.set_footer(
-			text="This season has ended.",
-			icon_url="https://cdn.discordapp.com/emojis/998705274074435584.webp?size=4096",
+		embed.set_footer(text="This season has ended.", icon_url="https://cdn.discordapp.com/emojis/998705274074435584.webp?size=4096")
+	return embed
+
+
+async def build_profile_embed(bot, ctx, username: str = None):
+	if username is None:
+		member = ctx.author
+		username = ctx.author.name
+	else:
+		if match := re.match(r"<@!?(\d+)>", username):
+			user_id = int(match.group(1))
+			member = ctx.guild.get_member(user_id) or await bot.get_or_fetch_user(user_id)
+			username = member.name if member else username
+		else:
+			member = get_member_from_username(bot, username)
+
+	season, last_updated_timestamp = await get_season_data()
+	contract_user = season.get_user(username)
+	if not contract_user:
+		error_embed = discord.Embed(color=discord.Color.red())
+		error_embed.description = ":x: User not found!"
+		return error_embed
+
+	embed = get_common_embed(last_updated_timestamp, contract_user, member)
+	embed.description = f"> **Rep**: {contract_user.rep}"
+
+	contractor: discord.Member = get_member_from_username(bot, contract_user.contractor)
+	contractees: list[str] = []  # List because theres like a few people that have 2 contractees for some reason
+	for user in season.users.values():
+		if user.contractor == contract_user.name:
+			member = get_member_from_username(bot, user.name)
+			contractees.append(member.mention) if member else contractees.append(user.name)
+
+	embed.description += (
+		f"\n> **Contractor**: {contractor.mention if contractor else contract_user.contractor} {f'({contractor.name})' if contractor else ''}"
+	)
+	embed.description += f"\n> **Contractee**: {', '.join(contractees)}"
+
+	if url := contract_user.list_url:
+		url_lower = url.lower()
+		list_username = url.rstrip("/").split("/")[-1]
+		if "myanimelist" in url_lower:
+			embed.description += f"\n> **MyAnimeList**: [{list_username}]({url})"
+		elif "anilist" in url_lower:
+			embed.description += f"\n> **AniList**: [{list_username}]({url})"
+		else:
+			embed.description += f"\n> **List**: {url}"
+
+	embed.description += f"\n> **Preferences**: {contract_user.preferences}"
+	embed.description += f"\n> **Bans**: {contract_user.bans}"
+	return embed
+
+
+async def build_stats_embed(rep: Optional[str] = None):
+	season, last_updated_timestamp = await get_season_data()
+
+	if rep and rep.upper() not in season.reps:
+		error_embed = discord.Embed(color=discord.Color.red())
+		error_embed.description = ":x: Invalid rep!"
+		return error_embed
+
+	if not rep:
+		season_stats = season.stats
+	else:
+		users_passed = users_total = contracts_passed = contracts_total = 0
+		contract_types = {}
+
+		for user in season.users.values():
+			if user.rep.upper() != rep.upper():
+				continue
+			users_total += 1
+			if user.status == "PASSED":
+				users_passed += 1
+			for ctype, cdata in user.contracts.items():
+				if ctype not in contract_types:
+					contract_types[ctype] = [0, 0]
+				contract_types[ctype][1] += 1
+				if cdata.passed:
+					contract_types[ctype][0] += 1
+					contracts_passed += 1
+			contracts_total += len(user.contracts)
+
+		season_stats = contracts.SeasonStats(
+			users_passed=users_passed,
+			users=users_total,
+			contracts_passed=contracts_passed,
+			contracts=contracts_total,
+			contract_types=contract_types,
 		)
+
+	embed = get_common_embed(last_updated_timestamp)
+	embed.title = "Contracts Winter 2025" if not rep else f"Contracts Winter 2025 - {rep.upper()} [{season.reps[rep.upper()]}]"
+	embed.description = ""
+
+	if not rep:
+		embed.description += f"\nSeason ending on **<t:{config.DEADLINE_TIMESTAMP_INT}:D>** at **<t:{config.DEADLINE_TIMESTAMP_INT}:t>**."
+
+	embed.description += "\n\n **Passed**:"
+	embed.description += (
+		f"\n> **Users passed**: {season_stats.users_passed}/{season_stats.users} ({get_percentage(season_stats.users_passed, season_stats.users)}%)"
+	)
+	embed.description += (
+		f"\n> **Contracts passed**: {season_stats.contracts_passed}/{season_stats.contracts} "
+		f"({get_percentage(season_stats.contracts_passed, season_stats.contracts)}%)"
+	)
+	embed.description += "\n\n **Contracts**:"
+	for contract_type, type_stats in season_stats.contract_types.items():
+		embed.description += f"\n> **{contract_type}**: {type_stats[0]}/{type_stats[1]} ({get_percentage(type_stats[0], type_stats[1])}%)"
+
 	return embed
 
 
@@ -152,25 +250,18 @@ class Contracts(commands.Cog):
 
 		if not self.logger.handlers:
 			file_handler = logging.FileHandler("logs/contracts.log", encoding="utf-8")
-			file_handler.setFormatter(FILE_LOGGING_FORMATTER)
+			file_handler.setFormatter(config.FILE_LOGGING_FORMATTER)
 			console_handler = logging.StreamHandler()
-			console_handler.setFormatter(CONSOLE_LOGGING_FORMATTER)
+			console_handler.setFormatter(config.CONSOLE_LOGGING_FORMATTER)
 			self.logger.addHandler(file_handler)
 			self.logger.addHandler(console_handler)
 
 			self.logger.setLevel(logging.INFO)
 
-	def cog_unload(self):
-		self.change_user_status.cancel()
-
-	@commands.Cog.listener()
-	async def on_ready(self):
-		self.change_user_status.start()
-
 	contracts_group = discord.SlashCommandGroup(
 		name="contracts",
 		description="Contracts related commands",
-		guild_ids=BOT_CONFIG.guild_ids,
+		guild_ids=config.BOT_CONFIG.guild_ids,
 	)
 
 	# ~~TYPE COMMAND
@@ -245,62 +336,6 @@ class Contracts(commands.Cog):
 		await ctx.respond(embed=contracts_embed, ephemeral=is_ephemeral)
 
 	# ~~STATS COMMAND
-	async def build_stats_embed(self, rep: Optional[str] = None):
-		season, last_updated_timestamp = await get_season_data()
-
-		if rep and rep.upper() not in season.reps:
-			return "Invalid rep!"
-
-		if not rep:
-			season_stats = season.stats
-		else:
-			users_passed = users_total = contracts_passed = contracts_total = 0
-			contract_types = {}
-
-			for user in season.users.values():
-				if user.rep.upper() != rep.upper():
-					continue
-				users_total += 1
-				if user.status == "PASSED":
-					users_passed += 1
-				for ctype, cdata in user.contracts.items():
-					if ctype not in contract_types:
-						contract_types[ctype] = [0, 0]
-					contract_types[ctype][1] += 1
-					if cdata.passed:
-						contract_types[ctype][0] += 1
-						contracts_passed += 1
-				contracts_total += len(user.contracts)
-
-			season_stats = contracts.SeasonStats(
-				users_passed=users_passed,
-				users=users_total,
-				contracts_passed=contracts_passed,
-				contracts=contracts_total,
-				contract_types=contract_types,
-			)
-
-		embed = get_common_embed(last_updated_timestamp)
-		embed.title = "Contracts Winter 2025" if not rep else f"Contracts Winter 2025 - {rep.upper()} [{season.reps[rep.upper()]}]"
-		embed.description = ""
-
-		if not rep:
-			embed.description += f"\nSeason ending on **<t:{DEADLINE_TIMESTAMP_INT}:D>** at **<t:{DEADLINE_TIMESTAMP_INT}:t>**."
-
-		embed.description += (
-			f"\n> **Users passed**: {season_stats.users_passed}/{season_stats.users} "
-			f"({get_percentage(season_stats.users_passed, season_stats.users)}%)"
-		)
-		embed.description += (
-			f"\n> **Contracts passed**: {season_stats.contracts_passed}/{season_stats.contracts} "
-			f"({get_percentage(season_stats.contracts_passed, season_stats.contracts)}%)"
-		)
-		embed.description += "\n\n **Contracts**:"
-		for contract_type, type_stats in season_stats.contract_types.items():
-			embed.description += f"\n> **{contract_type}**: {get_percentage(type_stats[0], type_stats[1])}% ({type_stats[0]}/{type_stats[1]})"
-
-		return embed
-
 	@contracts_group.command(name="stats", description="Check the current season's stats")
 	async def stats(
 		self,
@@ -317,7 +352,7 @@ class Contracts(commands.Cog):
 			required=False,
 		),  # type: ignore
 	):
-		embed = await self.build_stats_embed(rep)
+		embed = await build_stats_embed(rep)
 		if isinstance(embed, str):
 			await ctx.respond(embed, ephemeral=True)
 		else:
@@ -326,66 +361,16 @@ class Contracts(commands.Cog):
 	@commands.command(name="stats", help="Check the season's stats", aliases=["s"])
 	@commands.cooldown(rate=5, per=5, type=commands.BucketType.user)
 	async def stats_text(self, ctx: commands.Context, *, rep: Optional[str] = None):
-		embed = await self.build_stats_embed(rep)
+		embed = await build_stats_embed(rep)
 		if isinstance(embed, str):
 			await ctx.reply(embed)
 		else:
 			await ctx.reply(embed=embed)
 
 	# ~~PROFILE COMMAND
-	async def build_profile_embed(self, ctx, username: str = None):
-		member = None
-		if username is None:
-			member = ctx.author
-			username = ctx.author.name
-		else:
-			if match := re.match(r"<@!?(\d+)>", username):
-				user_id = int(match.group(1))
-				member = ctx.guild.get_member(user_id) or await self.bot.get_or_fetch_user(user_id)
-				if member:
-					username = member.name
-			else:
-				member = get_member_from_username(self.bot, username)
-
-		season, last_updated_timestamp = await get_season_data()
-		contract_user = season.get_user(username)
-		if not contract_user:
-			return "User not found!"
-
-		embed = get_common_embed(last_updated_timestamp, contract_user, member)
-		embed.description = f"> **Rep**: {contract_user.rep}"
-
-		contractor: discord.Member = get_member_from_username(self.bot, contract_user.contractor)
-		contractees: list[str] = []  # List because theres like a few people that have 2 contractees for some reason
-		for user in season.users.values():
-			if user.contractor == contract_user.name:
-				member = get_member_from_username(self.bot, user.name)
-				if member:
-					contractees.append(member.mention)
-				else:
-					contractees.append(user.name)
-
-		embed.description += f"\n> **Contractor**: {contractor.mention if contractor else contract_user.contractor}"
-		embed.description += f"\n> **Contractee**: {', '.join(contractees)}"
-
-		if url := contract_user.list_url:
-			url_lower = url.lower()
-			list_username = url.rstrip("/").split("/")[-1]
-			if "myanimelist" in url_lower:
-				embed.description += f"\n> **MyAnimeList**: [{list_username}]({url})"
-			elif "anilist" in url_lower:
-				embed.description += f"\n> **AniList**: [{list_username}]({url})"
-			else:
-				embed.description += f"\n> **List**: {url}"
-
-		embed.description += f"\n> **Preferences**: {contract_user.preferences}"
-		embed.description += f"\n> **Bans**: {contract_user.bans}"
-
-		return embed
-
 	@commands.command(name="profile", aliases=["p"], help="Get a user's profile")
 	async def profile_text(self, ctx: commands.Context, username: str = None):
-		embed = await self.build_profile_embed(ctx, username)
+		embed = await build_profile_embed(self.bot, ctx, username)
 		if isinstance(embed, str):
 			await ctx.reply(embed)
 		else:
@@ -403,15 +388,15 @@ class Contracts(commands.Cog):
 		),  # type: ignore
 		hidden: discord.Option(bool, description="Whether you want the response only visible to you", required=False),  # type: ignore
 	):
-		embed = await self.build_profile_embed(ctx, username)
+		embed = await build_profile_embed(self.bot, ctx, username)
 		if isinstance(embed, str):
 			await ctx.respond(embed, ephemeral=True)
 		else:
 			await ctx.respond(embed=embed, ephemeral=hidden)
 
-	@discord.user_command(name="Get User Profile", guild_ids=BOT_CONFIG.guild_ids)
+	@discord.user_command(name="Get User Profile", guild_ids=config.BOT_CONFIG.guild_ids)
 	async def get_user_profile(self, ctx: discord.ApplicationContext, user: discord.User):
-		embed = await self.build_profile_embed(ctx, user.name)
+		embed = await build_profile_embed(self.bot, ctx, user.name)
 		if isinstance(embed, str):
 			await ctx.respond(embed, ephemeral=True)
 		else:
@@ -450,7 +435,7 @@ class Contracts(commands.Cog):
 
 		await _send_contracts_embed_response(ctx, contracts_user, ctx.author, member, ephemeral=hidden)
 
-	@discord.user_command(name="Get User Contracts", guild_ids=BOT_CONFIG.guild_ids)
+	@discord.user_command(name="Get User Contracts", guild_ids=config.BOT_CONFIG.guild_ids)
 	async def get_user_command(self, ctx: discord.ApplicationContext, user: discord.User):
 		season, _ = await get_season_data()
 		contracts_user = season.get_user(user.name)
@@ -478,7 +463,9 @@ class Contracts(commands.Cog):
 		season, _ = await get_season_data()
 		contracts_user = season.get_user(actual_username)
 		if not contracts_user:
-			await ctx.reply("User not found!")
+			error_embed = discord.Embed(color=discord.Color.red())
+			error_embed.description = ":x: User not found!"
+			await ctx.reply(embed=error_embed)
 			return
 
 		embed = await _create_user_contracts_embed("All", contracts_user, ctx.author, member)
@@ -493,6 +480,13 @@ class Contracts(commands.Cog):
 			activity=discord.CustomActivity(name=f"{season.stats.users_passed}/{season.stats.users} users passed | %help"),
 		)
 		gc.collect()
+
+	@commands.Cog.listener()
+	async def on_ready(self):
+		self.change_user_status.start()
+
+	def cog_unload(self):
+		self.change_user_status.cancel()
 
 
 def setup(bot: commands.Bot):

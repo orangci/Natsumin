@@ -1,14 +1,14 @@
-from dataclasses import asdict
-import datetime
-import io
-import json
-import logging
-from typing import Optional
-import discord
 from config import CONSOLE_LOGGING_FORMATTER, FILE_LOGGING_FORMATTER, BASE_EMBED_COLOR
-from discord.ext import commands
-from contracts import get_season_data
 from shared import get_member_from_username
+from contracts import get_season_data
+from discord.ext import commands
+from dataclasses import asdict
+from typing import Optional
+import datetime
+import logging
+import discord
+import json
+import io
 
 
 class DeleteMessageView(discord.ui.View):

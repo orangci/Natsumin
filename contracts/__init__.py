@@ -1,12 +1,12 @@
+from config import CONSOLE_LOGGING_FORMATTER, FILE_LOGGING_FORMATTER, BOT_CONFIG
+from dataclasses import dataclass, field
 from async_lru import alru_cache
-import aiohttp
+from typing import Optional
 import datetime
 import logging
+import aiohttp
 import os
 import re
-from typing import Optional
-from dataclasses import dataclass, field
-from config import CONSOLE_LOGGING_FORMATTER, FILE_LOGGING_FORMATTER
 
 
 @dataclass(slots=True)
@@ -76,8 +76,7 @@ DASHBOARD_ROW_NAMES = {
 URL_REGEX = r"(https?:\/\/[^\s]+)"
 CONTRACT_NAME_MEDIUM_REGEX = r"(.*) \((.*)\)"
 
-SPREADSHEET_ID = "19aueoNx6BBU6amX7DhKGU8kHVauHWcSGiGKMzFSGkGc"
-GET_SHEET_DATA_URL = f"https://sheets.googleapis.com/v4/spreadsheets/{SPREADSHEET_ID}/values:batchGet"
+GET_SHEET_DATA_URL = f"https://sheets.googleapis.com/v4/spreadsheets/{BOT_CONFIG.SPREADSHEET_ID}/values:batchGet"
 
 
 logger = logging.getLogger("bot.contracts")
@@ -88,7 +87,6 @@ if not logger.handlers:
 	console_handler.setFormatter(CONSOLE_LOGGING_FORMATTER)
 	logger.addHandler(file_handler)
 	logger.addHandler(console_handler)
-
 	logger.setLevel(logging.INFO)
 
 
@@ -331,7 +329,7 @@ async def get_season_sheet_session() -> aiohttp.ClientSession:
 	return _season_sheet_session
 
 
-@alru_cache(ttl=2.5 * 60)
+@alru_cache(ttl=2.5 * 60, maxsize=1)
 async def get_season_data() -> tuple[Season, float]:
 	session = await get_season_sheet_session()
 	async with session.get(

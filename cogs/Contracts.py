@@ -63,13 +63,13 @@ async def _get_contracts_user_and_member(bot: commands.Bot, ctx_user: discord.Me
 	if not username:
 		return ctx_user, ctx_user.name
 
-	match = re.match(r"<@!?(\d+)>", username)
+	match = re.match(r"<@!?(\d+)>", username.lower())
 	if match:
 		user_id = int(match.group(1))
 		member = ctx_user.guild.get_member(user_id) or await bot.get_or_fetch_user(user_id)
 		return member, member.name if member else None
 
-	return get_member_from_username(bot, username), username
+	return get_member_from_username(bot, username.lower()), username.lower()
 
 
 async def _send_contracts_embed_response(ctx, user: contracts.User, sender, target, ephemeral=False):
@@ -133,6 +133,8 @@ async def build_profile_embed(bot, ctx, username: str = None):
 			username = member.name if member else username
 		else:
 			member = get_member_from_username(bot, username)
+
+	username = username.lower()
 
 	season, last_updated_timestamp = await get_season_data()
 	contract_user = season.get_user(username)
@@ -260,6 +262,7 @@ class Contracts(commands.Cog):
 			username = ctx.author.name
 		else:
 			selected_member = get_member_from_username(self.bot, username)
+		username = username.lower()
 
 		season, last_updated_timestamp = await get_season_data()
 		contract_user = season.get_user(username)

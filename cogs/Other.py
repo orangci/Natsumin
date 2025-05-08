@@ -34,7 +34,7 @@ class Other(commands.Cog):
 		embed.description += f"\n> **Maintainers**: {', '.join(owner_names)}"
 		await ctx.reply(embed=embed)
 
-	@commands.command(name="info", description="Fetch information on the bot.")
+	@commands.slash_command(name="info", description="Fetch information on the bot.")
 	async def slash_info(self, ctx: discord.ApplicationContext):
 		ping_ms = round(self.bot.latency * 1000)
 

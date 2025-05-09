@@ -50,7 +50,7 @@ class Other(commands.Cog):
 		embed.description += f"\n> **Maintainers**: {', '.join(owner_names)}"
 		await ctx.respond(embed=embed)
 
-	@commands.command(help="Fetch information on the bot.", aliases=["latency"])
+	@commands.command(help="Ping the bot.", aliases=["latency"])
 	async def ping(self, ctx: commands.Context):
 		embed = discord.Embed(color=config.BASE_EMBED_COLOR)
 		embed.description = f":ping_pong: Pong! ({round(self.bot.latency * 1000)}ms)"

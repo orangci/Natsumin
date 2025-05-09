@@ -1,3 +1,4 @@
+from typing import Mapping, Optional
 from config import BOT_CONFIG, BASE_EMBED_COLOR
 from contracts import cache_reset_loop
 from discord.ext import commands
@@ -35,19 +36,45 @@ def recursive_load_cogs(path: str):
 
 
 class Help(commands.HelpCommand):
-	def get_command_signature(self, command):
-		return "%s%s %s" % (self.context.clean_prefix, command.qualified_name, command.signature)
+	def get_command_signature(self, command: commands.Command):
+		return "%s%s %s %s" % (self.context.clean_prefix, command.qualified_name, command.signature, ("- " + command.help) if command.help else "")
 
-	async def send_bot_help(self, mapping):
-		embed = discord.Embed(title="Help", color=BASE_EMBED_COLOR)
+	async def send_bot_help(self, mapping: Mapping[Optional[commands.Cog], list[commands.Command]]):
+		embed = discord.Embed(color=BASE_EMBED_COLOR)
 
 		for cog, cog_commands in mapping.items():
-			filtered = await self.filter_commands(cog_commands, sort=True)
+			filtered: list[commands.Command] = await self.filter_commands(cog_commands, sort=True)
 			command_signatures = [self.get_command_signature(c) for c in filtered]
 
 			if command_signatures:
 				cog_name = getattr(cog, "qualified_name", "No Category")
-				embed.add_field(name=cog_name, value="\n".join(command_signatures), inline=False)
+				embed.add_field(name=cog_name, value="\n".join([f"> {s}" for s in command_signatures]), inline=False)
+
+		channel = self.get_destination()
+		await channel.send(embed=embed)
+
+	async def send_command_help(self, command: commands.Command):
+		embed = discord.Embed(color=BASE_EMBED_COLOR)
+
+		embed.description = f"{self.context.clean_prefix}{command.qualified_name} {command.signature}"
+		if len(command.aliases) > 0:
+			embed.description += f"\n> **Aliases**: {', '.join(command.aliases)}"
+
+		if command.help:
+			embed.description += f"\n\n{command.help}"
+
+		channel = self.get_destination()
+		await channel.send(embed=embed)
+
+	async def send_cog_help(self, cog: commands.Cog):
+		embed = discord.Embed(color=BASE_EMBED_COLOR)
+
+		filtered: list[commands.Command] = await self.filter_commands(cog.get_commands(), sort=True)
+		command_signatures = [self.get_command_signature(c) for c in filtered]
+
+		if command_signatures:
+			cog_name = getattr(cog, "qualified_name", "No Category")
+			embed.add_field(name=cog_name, value="\n".join([f"> {s}" for s in command_signatures]), inline=False)
 
 		channel = self.get_destination()
 		await channel.send(embed=embed)

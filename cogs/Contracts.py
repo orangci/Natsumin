@@ -267,39 +267,27 @@ class Contracts(commands.Cog):
 		season, last_updated_timestamp = await get_season_data()
 		contract_user = season.get_user(username)
 		if not contract_user:
-			not_found_embed = discord.Embed(
-				color=discord.Color.red(), description="User not found! If this is a mistake please ping <@546659584727580692>"
-			)
-			await ctx.respond(embed=not_found_embed, ephemeral=True)
-			return
+			return await ctx.respond(embed=discord.Embed(color=discord.Color.red(), description=":x: User not found!"), ephemeral=True)
 
 		if contract_type not in contract_user.contracts:
-			not_found_embed = discord.Embed(
-				color=discord.Color.red(), description="Contract not found! If this is a mistake please ping <@546659584727580692>"
-			)
-			await ctx.respond(embed=not_found_embed, ephemeral=True)
-			return
+			return await ctx.respond(embed=discord.Embed(color=discord.Color.red(), description=":x: Contract not found!"), ephemeral=True)
 
 		contract_data = contract_user.contracts[contract_type]
+		contractor: discord.Member = get_member_from_username(self.bot, contract_data.contractor)
 
-		contracts_embed = get_common_embed(last_updated_timestamp, contract_user, selected_member)
-		contracts_embed.title = contract_type
-		contracts_embed.url = contract_data.review_url if contract_data.review_url != "" else None
-		contracts_embed.description = (
-			f"**Name**: {contract_data.name}\n"
-			+ f"**Medium**: {contract_data.medium}\n"
-			+ (
-				f"**{'Contractor' if contract_data.medium != 'Game' else 'Sponsor'}**: {contract_data.contractor}\n"
-				if contract_data.contractor != ""
-				else ""
-			)
-		)
-		contract_status = contract_data.status if contract_data.status != "" else "PENDING"
-		contracts_embed.add_field(name="Status", value=contract_status.lower().capitalize(), inline=True)
-		contracts_embed.add_field(name="Score", value=contract_data.rating, inline=True)
-		contracts_embed.add_field(name="Progress", value=contract_data.progress, inline=True)
+		embed = get_common_embed(last_updated_timestamp, contract_user, selected_member)
+		embed.title = contract_type
+		embed.url = contract_data.review_url if contract_data.review_url != "" else None
+		embed.description = "> **Name**: " + contract_data.name
+		embed.description += f"\n> **Medium**: {contract_data.medium}"
+		if contract_data.contractor != "":
+			embed.description += f"\n> **{'Contractor' if contract_data.medium != 'Game' else 'Sponsor'}**:"
+			embed.description += f" {contractor.mention if contractor else contract_data.contractor} {f'({contractor.name})' if contractor else ''}"
+		embed.description += f"\n> **Progress**: {contract_data.progress}"
+		embed.description += f"\n> **Score**: {contract_data.rating}"
+		embed.description += f"\n> **Status**: {(contract_data.status if contract_data.status != '' else 'PENDING').capitalize()}"
 
-		await ctx.respond(embed=contracts_embed, ephemeral=is_ephemeral)
+		await ctx.respond(embed=embed, ephemeral=is_ephemeral)
 
 	# ~~STATS COMMAND
 	@contracts_group.command(name="stats", description="Check the current season's stats")

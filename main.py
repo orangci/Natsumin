@@ -37,7 +37,12 @@ def recursive_load_cogs(path: str):
 
 class Help(commands.HelpCommand):
 	def get_command_signature(self, command: commands.Command):
-		return "%s%s %s %s" % (self.context.clean_prefix, command.qualified_name, command.signature, ("- " + command.help) if command.help else "")
+		return "**%s%s**%s%s" % (
+			self.context.clean_prefix,
+			command.qualified_name,
+			(f" {command.signature}" if command.signature else ""),
+			(": " + command.help) if command.help else "",
+		)
 
 	async def send_bot_help(self, mapping: Mapping[Optional[commands.Cog], list[commands.Command]]):
 		embed = discord.Embed(color=BASE_EMBED_COLOR)

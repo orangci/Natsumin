@@ -18,7 +18,7 @@ class Other(commands.Cog):
 			self.logger.addHandler(console_handler)
 			self.logger.setLevel(logging.INFO)
 
-	@commands.command(help="Fetch information on the bot.")
+	@commands.command(help="Fetch information on the bot")
 	async def info(self, ctx: commands.Context):
 		ping_ms = round(self.bot.latency * 1000)
 
@@ -34,7 +34,7 @@ class Other(commands.Cog):
 		embed.description += f"\n> **Maintainers**: {', '.join(owner_names)}"
 		await ctx.reply(embed=embed)
 
-	@commands.slash_command(name="info", description="Fetch information on the bot.")
+	@commands.slash_command(name="info", description="Fetch information on the bot")
 	async def slash_info(self, ctx: discord.ApplicationContext):
 		ping_ms = round(self.bot.latency * 1000)
 
@@ -50,13 +50,13 @@ class Other(commands.Cog):
 		embed.description += f"\n> **Maintainers**: {', '.join(owner_names)}"
 		await ctx.respond(embed=embed)
 
-	@commands.command(help="Ping the bot.", aliases=["latency"])
+	@commands.command(help="Check the bot's latency", aliases=["latency"])
 	async def ping(self, ctx: commands.Context):
 		embed = discord.Embed(color=config.BASE_EMBED_COLOR)
 		embed.description = f":ping_pong: Pong! ({round(self.bot.latency * 1000)}ms)"
 		await ctx.reply(embed=embed)
 
-	@commands.slash_command(name="ping", description="Ping the bot.")
+	@commands.slash_command(name="ping", description="Check the bot's latency")
 	async def slash_ping(self, ctx: discord.ApplicationContext):
 		embed = discord.Embed(color=config.BASE_EMBED_COLOR)
 		embed.description = f":ping_pong: Pong! ({round(self.bot.latency * 1000)}ms)"

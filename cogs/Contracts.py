@@ -1,4 +1,4 @@
-from contracts import get_season_data, DASHBOARD_ROW_NAMES
+from contracts import get_season_data, DASHBOARD_ROW_NAMES, OPTIONAL_CONTRACTS
 from shared import get_member_from_username
 from discord.ext import commands, tasks
 from typing import Optional
@@ -44,6 +44,12 @@ async def _create_user_contracts_embed(selected_category: str, user: contracts.U
 			contract_name = f"__**{contract.name}**__"
 		else:
 			contract_name = contract.name
+
+		if contract_type in OPTIONAL_CONTRACTS:
+			if contract.passed:
+				symbol = "🏆"
+			else:
+				symbol = "➖"
 
 		line = f"> {symbol} **{contract_type}**: "
 		line += f"[{contract_name}]({contract.review_url})" if contract.review_url else contract_name

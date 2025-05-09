@@ -14,9 +14,9 @@ import re
 @dataclass(slots=True)
 class Contract:
 	name: str = field()
-	passed: bool = field(default=False, repr=False)
+	passed: bool = field(default=False, repr=True)
 	contractor: str = field(default="", repr=False)
-	status: str = field(default="")
+	status: str = field(default="", repr=False)
 	progress: str = field(default="?/?", repr=False)
 	rating: str = field(default="0/10")
 	review_url: str = field(default="", repr=False)
@@ -75,6 +75,7 @@ DASHBOARD_ROW_NAMES = {
 	7: "Base Buddy",
 	8: "Challenge Buddy",
 }
+OPTIONAL_CONTRACTS = ["Extreme Special"]
 URL_REGEX = r"(https?:\/\/[^\s]+)"
 CONTRACT_NAME_MEDIUM_REGEX = r"(.*) \((.*)\)"
 

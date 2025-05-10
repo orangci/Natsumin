@@ -86,7 +86,7 @@ async def _get_contracts_user_and_member(bot: commands.Bot, ctx_user: discord.Me
 			case "[contractor]":
 				contractor = contract_user.get_contractor(season)
 				username = contractor.name if contractor else ""
-			case match if match := re.match(r"\[(\S*)\.(\S*)]", username):
+			case match if match := (re.match(r"\[(\S*)\.(\S*)]", username) or re.match(r"(\S*)\[(\S*)]", username)):
 				check_username, check_type = match.groups()
 				if check_user := season.get_user(check_username):
 					match check_type:

@@ -360,13 +360,7 @@ class Contracts(commands.Cog):
 		season, _ = await get_season_data()
 		contracts_user = season.get_user(actual_username)
 		if not contracts_user:
-			await ctx.respond(
-				embed=discord.Embed(
-					title="Contracts", color=discord.Color.red(), description="User not found! If this is a mistake please ping <@546659584727580692>"
-				),
-				ephemeral=True,
-			)
-			return
+			return await ctx.respond(embed=discord.Embed(color=discord.Color.red(), description=":x: User not found!"), ephemeral=True)
 
 		await _send_contracts_embed_response(ctx, contracts_user, ctx.author, member, ephemeral=hidden)
 
@@ -375,13 +369,7 @@ class Contracts(commands.Cog):
 		season, _ = await get_season_data()
 		contracts_user = season.get_user(user.name)
 		if not contracts_user:
-			await ctx.respond(
-				embed=discord.Embed(
-					title="Contracts", color=discord.Color.red(), description="User not found! If this is a mistake please ping <@546659584727580692>"
-				),
-				ephemeral=True,
-			)
-			return
+			return await ctx.respond(embed=discord.Embed(color=discord.Color.red(), description=":x: User not found!"), ephemeral=True)
 
 		await _send_contracts_embed_response(ctx, contracts_user, ctx.author, user, ephemeral=True)
 
@@ -392,10 +380,7 @@ class Contracts(commands.Cog):
 		season, _ = await get_season_data()
 		contracts_user = season.get_user(actual_username)
 		if not contracts_user:
-			error_embed = discord.Embed(color=discord.Color.red())
-			error_embed.description = ":x: User not found!"
-			await ctx.reply(embed=error_embed)
-			return
+			return await ctx.reply(embed=discord.Embed(color=discord.Color.red(), description=":x: User not found!"))
 
 		embed = await _create_user_contracts_embed("All", contracts_user, ctx.author, member)
 		await ctx.reply(embed=embed)

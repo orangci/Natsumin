@@ -86,6 +86,16 @@ async def _get_contracts_user_and_member(bot: commands.Bot, ctx_user: discord.Me
 			case "[contractor]":
 				contractor = contract_user.get_contractor(season)
 				username = contractor.name if contractor else ""
+			case match if match := re.match(r"\[(\S*)\.(\S*)]", username):
+				check_username, check_type = match.groups()
+				if check_user := season.get_user(check_username):
+					match check_type:
+						case "contractee":
+							contractee = check_user.get_contractee(season)
+							username = contractee.name if contractee else ""
+						case "contractor":
+							contractor = check_user.get_contractor(season)
+							username = contractor.name if contractor else ""
 
 	return get_member_from_username(bot, username.lower()), username.lower()
 
@@ -141,31 +151,10 @@ def get_common_embed(
 
 
 async def build_profile_embed(bot, ctx, username: str = None):
+	member, actual_username = await _get_contracts_user_and_member(bot, ctx.author, username)
 	season, last_updated_timestamp = await get_season_data()
 
-	if username is None:
-		member = ctx.author
-		username = ctx.author.name
-	else:
-		if match := re.match(r"<@!?(\d+)>", username):
-			user_id = int(match.group(1))
-			member = ctx.guild.get_member(user_id) or await bot.get_or_fetch_user(user_id)
-			username = member.name if member else username
-		else:
-			if contract_user := season.get_user(ctx.author.name):
-				match username:
-					case "[contractee]":
-						contractee = contract_user.get_contractee(season)
-						username = contractee.name if contractee else ""
-					case "[contractor]":
-						contractor = contract_user.get_contractor(season)
-						username = contractor.name if contractor else ""
-
-			member = get_member_from_username(bot, username)
-
-	username = username.lower()
-
-	contract_user = season.get_user(username)
+	contract_user = season.get_user(actual_username)
 	if not contract_user:
 		error_embed = discord.Embed(color=discord.Color.red())
 		error_embed.description = ":x: User not found!"

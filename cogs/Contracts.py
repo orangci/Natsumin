@@ -75,6 +75,18 @@ async def _get_contracts_user_and_member(bot: commands.Bot, ctx_user: discord.Me
 		member = ctx_user.guild.get_member(user_id) or await bot.get_or_fetch_user(user_id)
 		return member, member.name if member else None
 
+	season, _ = await get_season_data()
+	contract_user = season.get_user(ctx_user.name)
+
+	if contract_user:
+		match username:
+			case "[contractee]":
+				contractee = contract_user.get_contractee(season)
+				username = contractee.name if contractee else ""
+			case "[contractor]":
+				contractor = contract_user.get_contractor(season)
+				username = contractor.name if contractor else ""
+
 	return get_member_from_username(bot, username.lower()), username.lower()
 
 
@@ -129,6 +141,8 @@ def get_common_embed(
 
 
 async def build_profile_embed(bot, ctx, username: str = None):
+	season, last_updated_timestamp = await get_season_data()
+
 	if username is None:
 		member = ctx.author
 		username = ctx.author.name
@@ -138,11 +152,19 @@ async def build_profile_embed(bot, ctx, username: str = None):
 			member = ctx.guild.get_member(user_id) or await bot.get_or_fetch_user(user_id)
 			username = member.name if member else username
 		else:
+			if contract_user := season.get_user(ctx.author.name):
+				match username:
+					case "[contractee]":
+						contractee = contract_user.get_contractee(season)
+						username = contractee.name if contractee else ""
+					case "[contractor]":
+						contractor = contract_user.get_contractor(season)
+						username = contractor.name if contractor else ""
+
 			member = get_member_from_username(bot, username)
 
 	username = username.lower()
 
-	season, last_updated_timestamp = await get_season_data()
 	contract_user = season.get_user(username)
 	if not contract_user:
 		error_embed = discord.Embed(color=discord.Color.red())

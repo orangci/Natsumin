@@ -366,7 +366,7 @@ class Contracts(commands.Cog):
 		season, _ = await get_season_data()
 		contracts_user = season.get_user(actual_username)
 		if not contracts_user:
-			return await ctx.respond(embed=discord.Embed(color=discord.Color.red(), description=":x: User not found!"), ephemeral=True)
+			return await ctx.respond(embed=discord.Embed(color=discord.Color.red(), description=":x: User not found!"), ephemeral=hidden)
 
 		await _send_contracts_embed_response(ctx, contracts_user, member, ephemeral=hidden)
 
@@ -381,11 +381,17 @@ class Contracts(commands.Cog):
 
 	@commands.command(name="get", help="Get the state of someone's contracts", aliases=["contracts", "g", "c"])
 	@commands.cooldown(rate=5, per=5, type=commands.BucketType.user)
-	async def get_text(self, ctx: commands.Context, username: str = None):
+	async def get_text(self, ctx: commands.Context, *, username: str = None):
 		member, actual_username = await _get_contracts_user_and_member(self.bot, ctx.author, username)
 		season, _ = await get_season_data()
 		contracts_user = season.get_user(actual_username)
-		if not contracts_user:
+		if not contracts_user and actual_username.upper() in season.reps.keys():
+			return await ctx.reply(
+				embed=discord.Embed(
+					color=discord.Color.red(), description=f":question: I think you meant to do **{ctx.clean_prefix}s {actual_username.upper()}**"
+				)
+			)
+		elif not contracts_user:
 			return await ctx.reply(embed=discord.Embed(color=discord.Color.red(), description=":x: User not found!"))
 
 		embed = await _create_user_contracts_embed(contracts_user, member)

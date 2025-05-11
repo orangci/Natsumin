@@ -8,7 +8,6 @@ import logging
 import discord
 import config
 import math
-import gc
 import re
 
 
@@ -457,7 +456,6 @@ class Contracts(commands.Cog):
 			status=discord.Status.online,
 			activity=discord.CustomActivity(name=f"{season.stats.users_passed}/{season.stats.users} users passed | %help"),
 		)
-		gc.collect()
 
 	@commands.Cog.listener()
 	async def on_ready(self):

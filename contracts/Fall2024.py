@@ -1,4 +1,5 @@
 from contracts.classes import Season, User, Contract, SeasonStats, ContractType
+from async_lru import alru_cache
 import aiohttp
 import os
 import re
@@ -156,6 +157,7 @@ def _convert_sheet_to_season(sheet_data) -> Season:
 	return season
 
 
+@alru_cache(maxsize=1)
 async def get_data(session: aiohttp.ClientSession) -> Season:
 	async with session.get(
 		f"https://sheets.googleapis.com/v4/spreadsheets/{SPREADSHEET_ID}/values:batchGet",

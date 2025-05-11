@@ -3,6 +3,19 @@ import aiohttp
 import os
 import re
 
+CONTRACT_TYPES = [
+	"Base Contract",
+	"Challenge Contract",
+	"Veteran Special",
+	"Movie Special",
+	"VN Special",
+	"Indie Special",
+	"Extreme Special",
+	"Base Buddy",
+	"Challenge Buddy",
+]
+OPTIONAL_CONTRACTS = ["Extreme Special"]
+
 DASHBOARD_ROW_NAMES = {
 	0: "Base Contract",
 	1: "Challenge Contract",
@@ -14,7 +27,8 @@ DASHBOARD_ROW_NAMES = {
 	7: "Base Buddy",
 	8: "Challenge Buddy",
 }
-OPTIONAL_CONTRACTS = ["Extreme Special"]
+
+
 SPREADSHEET_ID = "19aueoNx6BBU6amX7DhKGU8kHVauHWcSGiGKMzFSGkGc"
 
 URL_REGEX = r"(https?:\/\/[^\s]+)"

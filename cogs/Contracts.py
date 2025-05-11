@@ -1,4 +1,4 @@
-from contracts import get_season_data, DASHBOARD_ROW_NAMES, OPTIONAL_CONTRACTS
+from contracts import get_season_data
 from shared import get_member_from_username
 from discord.ext import commands, tasks
 from typing import Optional
@@ -11,29 +11,12 @@ import math
 import gc
 import re
 
-contract_categories = {
-	"All": [
-		"Base Contract",
-		"Challenge Contract",
-		"Veteran Special",
-		"Movie Special",
-		"VN Special",
-		"Indie Special",
-		"Extreme Special",
-		"Base Buddy",
-		"Challenge Buddy",
-	],
-	"Primary": ["Base Contract", "Challenge Contract"],
-	"Specials": ["Veteran Special", "Movie Special", "VN Special", "Indie Special", "Extreme Special"],
-	"Buddies": ["Base Buddy", "Challenge Buddy"],
-}
-
 
 async def _create_user_contracts_embed(selected_category: str, user: contracts.User, sender: discord.Member, target: discord.Member) -> discord.Embed:
 	season, last_updated_timestamp = await get_season_data()
 	embed = get_common_embed(last_updated_timestamp, user, target)
 
-	for contract_type in contract_categories.get(selected_category, []):
+	for contract_type in contracts.get_contract_types():
 		contract = user.contracts.get(contract_type)
 		if not contract or contract.name == "-":
 			continue
@@ -45,7 +28,7 @@ async def _create_user_contracts_embed(selected_category: str, user: contracts.U
 		else:
 			contract_name = contract.name
 
-		if contract_type in OPTIONAL_CONTRACTS:
+		if contract_type in contracts.get_optional_contract_types():
 			if contract.passed:
 				symbol = "🏆"
 			else:
@@ -280,7 +263,7 @@ class Contracts(commands.Cog):
 		self,
 		ctx: discord.ApplicationContext,
 		contract_type: discord.Option(
-			str, description="Type of contract to check", name="type", required=True, choices=list(DASHBOARD_ROW_NAMES.values())
+			str, description="Type of contract to check", name="type", required=True, choices=list(contracts.get_contract_types())
 		),  # type: ignore
 		username: discord.Option(str, description="User to check", required=False, autocomplete=get_contracts_usernames),  # type: ignore
 		is_ephemeral: discord.Option(bool, name="hidden", description="Whether you want the response only visible to you", required=False),  # type: ignore

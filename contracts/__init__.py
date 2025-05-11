@@ -147,7 +147,16 @@ def _get_season_dashboard_data(sheet_data) -> Season:
 		if user_passed_contracts:
 			users_passed += 1
 
-		season.users[username] = User(name=username, status="PASSED" if status == "P" else "FAILED" if status == "F" else status, contracts=contracts)
+		user_status = "FAILED"
+		if status == "P":
+			user_status = "PASSED"
+		elif status == "F":
+			user_status = "FAILED"
+		elif status == "LP":
+			user_status = "LATE PASS"
+		elif status == "INC":
+			user_status = "INCOMPLETE"
+		season.users[username] = User(name=username, status=user_status, contracts=contracts)
 
 	season.stats = SeasonStats(
 		users=len(season.users),

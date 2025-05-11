@@ -57,6 +57,8 @@ async def _create_user_contracts_embed(selected_category: str, user: contracts.U
 
 	if user.status == "PASSED":
 		embed.description += "\n\n This user has **passed** the season."
+	elif user.status == "LATE PASS":
+		embed.description += "\n\n This user has **passed** the season **late**."
 
 	passed = len([c for c in user.contracts.values() if c.passed])
 	total = len(user.contracts)
@@ -127,8 +129,18 @@ def get_common_embed(
 	if contracts_user:
 		# if discord_member:
 		# embed.set_thumbnail(url=discord_member.display_avatar.url)
+		symbol = ""
+		if contracts_user.status == "FAILED":
+			symbol = "❌"
+		elif contracts_user.status == "PASSED":
+			symbol = "✅"
+		elif contracts_user.status == "LATE PASS":
+			symbol = "⌛☑️"
+		elif contracts_user.status == "INCOMPLETE":
+			symbol = "⛔"
+
 		embed.set_author(
-			name=f"{contracts_user.name} {'✅' if contracts_user.status == 'PASSED' else '❌' if contracts_user.status == 'FAILED' else ''}",
+			name=f"{contracts_user.name} {symbol}",
 			url=contracts_user.list_url if contracts_user.list_url != "" else None,
 			icon_url=discord_member.display_avatar.url if discord_member else None,
 		)

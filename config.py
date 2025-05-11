@@ -10,6 +10,7 @@ class Config:
 	guild_ids: list[int]
 	prefix: str
 	owner_ids: list[int]
+	contributor_ids: list[int]
 	repository_link: str
 	SPREADSHEET_ID: str
 	DEADLINE: str

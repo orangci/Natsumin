@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Optional
-from enum import Enum
+from enum import StrEnum, Enum
 
 
 @dataclass(slots=True)
@@ -59,19 +59,23 @@ class Season:
 # TODO: Start using enums instead of strings where applicable
 
 
-class ContractType(Enum):
-	BASE_CONTRACT = 1
-	CHALLENGE_CONTRACT = 2
-	BASE_BUDDY = 3
-	CHALLENGE_BUDDY = 4
-	VETERAN_SPECIAL = 5
-	MOVIE_SPECIAL = 6
-	VN_SPECIAL = 7
-	INDIE_SPECIAL = 8
-	EXTREME_SPECIAL = 9
+class ContractType(StrEnum):
+	BASE_CONTRACT = "Base Contract"
+	CHALLENGE_CONTRACT = "Challenge Contract"
+	BASE_BUDDY = "Base Buddy"
+	CHALLENGE_BUDDY = "Challenge Buddy"
+	VETERAN_SPECIAL = "Veteran Special"
+	MOVIE_SPECIAL = "Movie Special"
+	VN_SPECIAL = "VN Special"
+	INDIE_SPECIAL = "Indie Special"
+	EXTREME_SPECIAL = "Extreme Special"
+	TRASH_SPECIAL = "Trash Special"
+	COMMUNITY_SPECIAL = "Community Special"
+	MYSTERY_SPECIAL = "Mystery Special"
 
 
 class UserStatusType(Enum):
+	PENDING = 0
 	PASSED = 1
 	FAILED = 2
 	LATE_PASS = 3

@@ -8,11 +8,11 @@ load_dotenv()
 
 
 async def main():
-	season, _ = await get_season_data()
+	season, _ = await get_season_data("Fall 2024")
 
 	print(season)
 
-	with open("winter_2025.json", "w") as f:
+	with open("fall_2024.json", "w") as f:
 		json.dump(asdict(season), f, indent=4)
 
 

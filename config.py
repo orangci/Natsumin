@@ -13,6 +13,7 @@ class Config:
 	contributor_ids: list[int]
 	repository_link: str
 	DEADLINE: str
+	active_season: str
 
 
 with open("config.yaml", "r") as file:

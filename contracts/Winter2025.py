@@ -1,31 +1,31 @@
-from contracts.classes import Season, User, Contract, SeasonStats
+from contracts.classes import Season, User, Contract, SeasonStats, ContractType
 import aiohttp
 import os
 import re
 
 CONTRACT_TYPES = [
-	"Base Contract",
-	"Challenge Contract",
-	"Veteran Special",
-	"Movie Special",
-	"VN Special",
-	"Indie Special",
-	"Extreme Special",
-	"Base Buddy",
-	"Challenge Buddy",
+	ContractType.BASE_CONTRACT,
+	ContractType.CHALLENGE_CONTRACT,
+	ContractType.VETERAN_SPECIAL,
+	ContractType.MOVIE_SPECIAL,
+	ContractType.VN_SPECIAL,
+	ContractType.INDIE_SPECIAL,
+	ContractType.EXTREME_SPECIAL,
+	ContractType.BASE_BUDDY,
+	ContractType.CHALLENGE_BUDDY,
 ]
-OPTIONAL_CONTRACTS = ["Extreme Special"]
+OPTIONAL_CONTRACTS = [ContractType.EXTREME_SPECIAL]
 
 DASHBOARD_ROW_NAMES = {
-	0: "Base Contract",
-	1: "Challenge Contract",
-	2: "Veteran Special",
-	3: "Movie Special",
-	4: "VN Special",
-	5: "Indie Special",
-	6: "Extreme Special",
-	7: "Base Buddy",
-	8: "Challenge Buddy",
+	0: ContractType.BASE_CONTRACT,
+	1: ContractType.CHALLENGE_CONTRACT,
+	2: ContractType.VETERAN_SPECIAL,
+	3: ContractType.MOVIE_SPECIAL,
+	4: ContractType.VN_SPECIAL,
+	5: ContractType.INDIE_SPECIAL,
+	6: ContractType.EXTREME_SPECIAL,
+	7: ContractType.BASE_BUDDY,
+	8: ContractType.CHALLENGE_BUDDY,
 }
 
 

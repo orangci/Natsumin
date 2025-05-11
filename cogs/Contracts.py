@@ -12,23 +12,23 @@ import gc
 import re
 
 
-async def _create_user_contracts_embed(user: contracts.User, target: discord.Member) -> discord.Embed:
-	season, last_updated_timestamp = await get_season_data()
-	embed = get_common_embed(last_updated_timestamp, user, target)
+async def _create_user_contracts_embed(user: contracts.User, target: discord.Member, c_season: str = None) -> discord.Embed:
+	season, last_updated_timestamp = await get_season_data(c_season)
+	embed = get_common_embed(last_updated_timestamp, user, target, c_season)
 
-	for contract_type in contracts.get_contract_types():
+	for contract_type in contracts.get_contract_types(c_season):
 		contract = user.contracts.get(contract_type)
 		if not contract or contract.name == "-":
 			continue
 
 		symbol = "✅" if contract.passed else "❌"
-		if contract.name == "PLEASE SELECT":
+		if contract.name in ["PLEASE SELECT", "Undecided"]:
 			symbol = "⚠️"
 			contract_name = f"__**{contract.name}**__"
 		else:
 			contract_name = contract.name
 
-		if contract_type in contracts.get_optional_contract_types():
+		if contract_type in contracts.get_optional_contract_types(c_season):
 			if contract.passed:
 				symbol = "🏆"
 			else:
@@ -50,7 +50,7 @@ async def _create_user_contracts_embed(user: contracts.User, target: discord.Mem
 	return embed
 
 
-async def _get_contracts_user_and_member(bot: commands.Bot, ctx_user: discord.Member, username: Optional[str]):
+async def _get_contracts_user_and_member(bot: commands.Bot, ctx_user: discord.Member, username: Optional[str], c_season: str = None):
 	if not username:
 		return ctx_user, ctx_user.name
 
@@ -60,7 +60,7 @@ async def _get_contracts_user_and_member(bot: commands.Bot, ctx_user: discord.Me
 		member = ctx_user.guild.get_member(user_id) or await bot.get_or_fetch_user(user_id)
 		return member, member.name if member else None
 
-	season, _ = await get_season_data()
+	season, _ = await get_season_data(c_season)
 	contract_user = season.get_user(ctx_user.name)
 
 	if contract_user:
@@ -85,8 +85,8 @@ async def _get_contracts_user_and_member(bot: commands.Bot, ctx_user: discord.Me
 	return get_member_from_username(bot, username.lower()), username.lower()
 
 
-async def _send_contracts_embed_response(ctx, user: contracts.User, target, ephemeral=False):
-	embed = await _create_user_contracts_embed(user, target)
+async def _send_contracts_embed_response(ctx, user: contracts.User, target, ephemeral=False, c_season: str = None):
+	embed = await _create_user_contracts_embed(user, target, c_season)
 	await ctx.respond(embed=embed, ephemeral=ephemeral)
 
 
@@ -106,7 +106,7 @@ async def get_contracts_usernames(ctx: discord.AutocompleteContext):
 
 
 def get_common_embed(
-	timestamp: float, contracts_user: Optional[contracts.User] = None, discord_member: Optional[discord.Member] = None
+	timestamp: float, contracts_user: Optional[contracts.User] = None, discord_member: Optional[discord.Member] = None, c_season: str = None
 ) -> discord.Embed:
 	embed = discord.Embed(color=config.BASE_EMBED_COLOR, description="")
 	if contracts_user:
@@ -122,32 +122,38 @@ def get_common_embed(
 		elif contracts_user.status == "INCOMPLETE":
 			symbol = "⛔"
 
+		if c_season is not None and c_season != config.BOT_CONFIG.active_season:
+			symbol += f" ({c_season})" if symbol != "" else f"{(c_season)}"
+
 		embed.set_author(
 			name=f"{contracts_user.name} {symbol}",
 			url=contracts_user.list_url if contracts_user.list_url != "" else None,
 			icon_url=discord_member.display_avatar.url if discord_member else None,
 		)
 
-	current_datetime = datetime.datetime.now(datetime.UTC)
-	difference = config.DEADLINE_TIMESTAMP - current_datetime
-	difference_seconds = max(difference.total_seconds(), 0)
+	if c_season is None or c_season == config.BOT_CONFIG.active_season:
+		current_datetime = datetime.datetime.now(datetime.UTC)
+		difference = config.DEADLINE_TIMESTAMP - current_datetime
+		difference_seconds = max(difference.total_seconds(), 0)
 
-	if difference_seconds > 0:
-		days, remainder = divmod(difference_seconds, 86400)
-		hours, remainder = divmod(remainder, 3600)
-		minutes, seconds = divmod(remainder, 60)
-		embed.set_footer(
-			text=f"Deadline in {int(days)} days, {int(hours)} hours, and {int(minutes)} minutes.",
-			icon_url="https://cdn.discordapp.com/emojis/998705274074435584.webp?size=4096",
-		)
+		if difference_seconds > 0:
+			days, remainder = divmod(difference_seconds, 86400)
+			hours, remainder = divmod(remainder, 3600)
+			minutes, seconds = divmod(remainder, 60)
+			embed.set_footer(
+				text=f"Deadline in {int(days)} days, {int(hours)} hours, and {int(minutes)} minutes.",
+				icon_url="https://cdn.discordapp.com/emojis/998705274074435584.webp?size=4096",
+			)
+		else:
+			embed.set_footer(text="This season has ended.", icon_url="https://cdn.discordapp.com/emojis/998705274074435584.webp?size=4096")
 	else:
-		embed.set_footer(text="This season has ended.", icon_url="https://cdn.discordapp.com/emojis/998705274074435584.webp?size=4096")
+		embed.set_footer(text="insert text here", icon_url="https://cdn.discordapp.com/emojis/998705274074435584.webp?size=4096")
 	return embed
 
 
-async def build_profile_embed(bot, ctx, username: str = None):
-	member, actual_username = await _get_contracts_user_and_member(bot, ctx.author, username)
-	season, last_updated_timestamp = await get_season_data()
+async def build_profile_embed(bot, ctx, username: str = None, c_season: str = None):
+	member, actual_username = await _get_contracts_user_and_member(bot, ctx.author, username, c_season)
+	season, last_updated_timestamp = await get_season_data(c_season)
 
 	contract_user = season.get_user(actual_username)
 	if not contract_user:
@@ -155,7 +161,7 @@ async def build_profile_embed(bot, ctx, username: str = None):
 		error_embed.description = ":x: User not found!"
 		return error_embed
 
-	embed = get_common_embed(last_updated_timestamp, contract_user, member)
+	embed = get_common_embed(last_updated_timestamp, contract_user, member, c_season)
 	embed.description = f"> **Rep**: {contract_user.rep}"
 
 	contractor: discord.Member = get_member_from_username(bot, contract_user.contractor)
@@ -185,8 +191,8 @@ async def build_profile_embed(bot, ctx, username: str = None):
 	return embed
 
 
-async def build_stats_embed(rep: Optional[str] = None):
-	season, last_updated_timestamp = await get_season_data()
+async def build_stats_embed(rep: Optional[str] = None, c_season: str = None):
+	season, last_updated_timestamp = await get_season_data(c_season)
 
 	if rep and rep.upper() not in season.reps:
 		error_embed = discord.Embed(color=discord.Color.red())
@@ -218,12 +224,13 @@ async def build_stats_embed(rep: Optional[str] = None):
 			users_passed=users_passed, users=users_total, contracts_passed=contracts_passed, contracts=contracts_total, contract_types=contract_types
 		)
 
-	embed = get_common_embed(last_updated_timestamp)
-	embed.title = "Contracts Winter 2025" if not rep else f"Contracts Winter 2025 - {rep.upper()} [{season.reps[rep.upper()]}]"
+	embed = get_common_embed(last_updated_timestamp, c_season=c_season)
+	c_season = c_season or config.BOT_CONFIG.active_season
+	embed.title = f"Contracts {c_season}" if not rep else f"Contracts {c_season} - {rep.upper()} [{season.reps[rep.upper()]}]"
 	embed.description = ""
 
-	if not rep:
-		embed.description += f"\nSeason ending on **<t:{config.DEADLINE_TIMESTAMP_INT}:D>** at **<t:{config.DEADLINE_TIMESTAMP_INT}:t>**."
+	# if not rep:
+	# embed.description += f"\nSeason ending on **<t:{config.DEADLINE_TIMESTAMP_INT}:D>** at **<t:{config.DEADLINE_TIMESTAMP_INT}:t>**."
 
 	embed.description += "\n\n **Passed**:"
 	embed.description += (
@@ -334,9 +341,12 @@ class Contracts(commands.Cog):
 		self,
 		ctx: discord.ApplicationContext,
 		rep: discord.Option(str, description="Optionally check stats for a specific rep", required=False, autocomplete=get_contracts_reps),  # type: ignore
+		c_season: discord.Option(
+			str, name="season", description="Optionally check in another season", required=False, choices=contracts.AVAILABLE_SEASONS
+		),  # type: ignore
 		hidden: discord.Option(bool, description="Whether you want the response only visible to you", required=False),  # type: ignore
 	):
-		embed = await build_stats_embed(rep)
+		embed = await build_stats_embed(rep, c_season)
 		if isinstance(embed, str):
 			await ctx.respond(embed, ephemeral=True)
 		else:
@@ -365,9 +375,12 @@ class Contracts(commands.Cog):
 		self,
 		ctx: discord.ApplicationContext,
 		username: discord.Option(str, description="User to check", required=False, autocomplete=get_contracts_usernames),  # type: ignore
+		c_season: discord.Option(
+			str, name="season", description="Optionally check in another season", required=False, choices=contracts.AVAILABLE_SEASONS
+		),  # type: ignore
 		hidden: discord.Option(bool, description="Whether you want the response only visible to you", required=False),  # type: ignore
 	):
-		embed = await build_profile_embed(self.bot, ctx, username)
+		embed = await build_profile_embed(self.bot, ctx, username, c_season)
 		if isinstance(embed, str):
 			await ctx.respond(embed, ephemeral=True)
 		else:
@@ -387,15 +400,18 @@ class Contracts(commands.Cog):
 		self,
 		ctx: discord.ApplicationContext,
 		username: discord.Option(str, description="Optionally check for another user", required=False, autocomplete=get_contracts_usernames),  # type: ignore
+		c_season: discord.Option(
+			str, name="season", description="Optionally check in another season", required=False, choices=contracts.AVAILABLE_SEASONS
+		),  # type: ignore
 		hidden: discord.Option(bool, description="Whether you want the response only visible to you", required=False),  # type: ignore
 	):
-		member, actual_username = await _get_contracts_user_and_member(self.bot, ctx.author, username)
-		season, _ = await get_season_data()
+		member, actual_username = await _get_contracts_user_and_member(self.bot, ctx.author, username, c_season)
+		season, _ = await get_season_data(c_season)
 		contracts_user = season.get_user(actual_username)
 		if not contracts_user:
 			return await ctx.respond(embed=discord.Embed(color=discord.Color.red(), description=":x: User not found!"), ephemeral=hidden)
 
-		await _send_contracts_embed_response(ctx, contracts_user, member, ephemeral=hidden)
+		await _send_contracts_embed_response(ctx, contracts_user, member, hidden, c_season=c_season)
 
 	@discord.user_command(name="Get User Contracts", guild_ids=config.BOT_CONFIG.guild_ids)
 	async def get_user_command(self, ctx: discord.ApplicationContext, user: discord.User):

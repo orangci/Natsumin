@@ -12,7 +12,7 @@ import gc
 import re
 
 
-async def _create_user_contracts_embed(selected_category: str, user: contracts.User, sender: discord.Member, target: discord.Member) -> discord.Embed:
+async def _create_user_contracts_embed(user: contracts.User, target: discord.Member) -> discord.Embed:
 	season, last_updated_timestamp = await get_season_data()
 	embed = get_common_embed(last_updated_timestamp, user, target)
 
@@ -85,8 +85,8 @@ async def _get_contracts_user_and_member(bot: commands.Bot, ctx_user: discord.Me
 	return get_member_from_username(bot, username.lower()), username.lower()
 
 
-async def _send_contracts_embed_response(ctx, user: contracts.User, sender, target, ephemeral=False):
-	embed = await _create_user_contracts_embed("All", user, sender, target)
+async def _send_contracts_embed_response(ctx, user: contracts.User, target, ephemeral=False):
+	embed = await _create_user_contracts_embed(user, target)
 	await ctx.respond(embed=embed, ephemeral=ephemeral)
 
 
@@ -368,7 +368,7 @@ class Contracts(commands.Cog):
 		if not contracts_user:
 			return await ctx.respond(embed=discord.Embed(color=discord.Color.red(), description=":x: User not found!"), ephemeral=True)
 
-		await _send_contracts_embed_response(ctx, contracts_user, ctx.author, member, ephemeral=hidden)
+		await _send_contracts_embed_response(ctx, contracts_user, member, ephemeral=hidden)
 
 	@discord.user_command(name="Get User Contracts", guild_ids=config.BOT_CONFIG.guild_ids)
 	async def get_user_command(self, ctx: discord.ApplicationContext, user: discord.User):
@@ -377,7 +377,7 @@ class Contracts(commands.Cog):
 		if not contracts_user:
 			return await ctx.respond(embed=discord.Embed(color=discord.Color.red(), description=":x: User not found!"), ephemeral=True)
 
-		await _send_contracts_embed_response(ctx, contracts_user, ctx.author, user, ephemeral=True)
+		await _send_contracts_embed_response(ctx, contracts_user, user, ephemeral=True)
 
 	@commands.command(name="get", help="Get the state of someone's contracts", aliases=["contracts", "g", "c"])
 	@commands.cooldown(rate=5, per=5, type=commands.BucketType.user)
@@ -388,7 +388,7 @@ class Contracts(commands.Cog):
 		if not contracts_user:
 			return await ctx.reply(embed=discord.Embed(color=discord.Color.red(), description=":x: User not found!"))
 
-		embed = await _create_user_contracts_embed("All", contracts_user, ctx.author, member)
+		embed = await _create_user_contracts_embed(contracts_user, member)
 		await ctx.reply(embed=embed)
 
 	# ~~STATUS LOOP

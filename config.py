@@ -12,7 +12,6 @@ class Config:
 	owner_ids: list[int]
 	contributor_ids: list[int]
 	repository_link: str
-	SPREADSHEET_ID: str
 	DEADLINE: str
 
 

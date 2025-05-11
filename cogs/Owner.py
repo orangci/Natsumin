@@ -67,7 +67,7 @@ class Owner(commands.Cog):
 		season, _ = await get_season_data()
 		rep = rep.replace(" ", "-").lower()
 		passed_status = passed_status.lower()
-		if passed_status not in ["all", "*", "passed", "failed", "pending"]:
+		if passed_status not in ["all", "*", "passed", "failed", "pending", "late", "incomplete"]:
 			await ctx.reply("Invalid status! Use `all`, `*`, `passed`, `failed` or `pending`")
 			return
 		if rep not in ["all", "*"] and rep not in [user.rep.replace(" ", "-").lower() for user in season.users.values()]:
@@ -78,6 +78,8 @@ class Owner(commands.Cog):
 		pending_usernames = []
 		if passed_status == "pending":
 			passed_status = ""
+		elif passed_status == "late":
+			passed_status = "late pass"
 		for username, user in season.users.items():
 			if passed_status not in ["all", "*"] and user.status.lower() != passed_status:
 				continue

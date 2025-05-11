@@ -240,6 +240,33 @@ async def build_stats_embed(rep: Optional[str] = None):
 	return embed
 
 
+async def build_leaderboard_embed():
+	season, last_updated_timestamp = await get_season_data()
+
+	rep_stats: dict[int, list[str]] = {}
+	for rep_name in season.reps.keys():
+		users_passed = 0
+		users_total = 0
+		for user in season.users.values():
+			if user.rep.upper() != rep_name.upper():
+				continue
+			users_total += 1
+			if user.status == "PASSED":
+				users_passed += 1
+
+		percentage_of_users_passed = get_percentage(users_passed, users_total)
+		if percentage_of_users_passed not in rep_stats:
+			rep_stats[percentage_of_users_passed] = []
+		rep_stats[percentage_of_users_passed].append(f"**{rep_name}** ({users_passed}/{users_total})")
+
+	sorted_stats = dict(sorted(rep_stats.items(), reverse=True))
+
+	embed = get_common_embed(last_updated_timestamp)
+	for percentage, reps in sorted_stats.items():
+		embed.description += f"\n1. {', '.join(reps)}: {percentage}%"
+	return embed
+
+
 class Contracts(commands.Cog):
 	def __init__(self, bot: commands.Bot):
 		self.bot = bot
@@ -396,6 +423,15 @@ class Contracts(commands.Cog):
 
 		embed = await _create_user_contracts_embed(contracts_user, member)
 		await ctx.reply(embed=embed)
+
+	# ~~LEADERBOARD COMMAND
+	@commands.command(name="leaderboard", help="Check the reps leaderboard", aliases=["lb"])
+	async def leaderboard_text(self, ctx: commands.context):
+		embed = await build_leaderboard_embed()
+		if isinstance(embed, str):
+			await ctx.reply(embed)
+		else:
+			await ctx.reply(embed=embed)
 
 	# ~~STATUS LOOP
 	@tasks.loop(minutes=30)

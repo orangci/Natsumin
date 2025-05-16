@@ -161,8 +161,8 @@ async def build_profile_embed(bot, ctx, username: str = None, c_season: str = No
 		error_embed.description = ":x: User not found!"
 		fuzzy_results: list[tuple[str, int]] = process.extract(actual_username, season.users.keys(), limit=1)
 		if len(fuzzy_results) > 0:
-			fuzzy_username, _ = fuzzy_results[0]
-			error_embed.description = f":x: User not found! Did you mean **{fuzzy_username}**?"
+			fuzzy_username, fuzzy_confidence = fuzzy_results[0]
+			error_embed.description = f":x: User not found! Did you mean **{fuzzy_username}** ({fuzzy_confidence}%)?"
 
 		return error_embed
 
@@ -204,8 +204,8 @@ async def build_stats_embed(rep: Optional[str] = None, c_season: str = None):
 		error_embed.description = ":x: Invalid rep!"
 		fuzzy_results: list[tuple[str, int]] = process.extract(rep.strip().upper(), season.reps.keys(), limit=1)
 		if len(fuzzy_results) > 0:
-			fuzzy_rep, _ = fuzzy_results[0]
-			error_embed.description = f":x: Invalid rep! Did you mean **{fuzzy_rep}**?"
+			fuzzy_rep, fuzzy_confidence = fuzzy_results[0]
+			error_embed.description = f":x: Invalid rep! Did you mean **{fuzzy_rep}** ({fuzzy_confidence}%)?"
 
 		return error_embed
 
@@ -423,8 +423,8 @@ class Contracts(commands.Cog):
 			error_embed.description = ":x: User not found!"
 			fuzzy_results: list[tuple[str, int]] = process.extract(actual_username, season.users.keys(), limit=1)
 			if len(fuzzy_results) > 0:
-				fuzzy_username, _ = fuzzy_results[0]
-				error_embed.description = f":x: User not found! Did you mean **{fuzzy_username}**?"
+				fuzzy_username, fuzzy_confidence = fuzzy_results[0]
+				error_embed.description = f":x: User not found! Did you mean **{fuzzy_username}** ({fuzzy_confidence}%)?"
 
 			return await ctx.respond(embed=error_embed, ephemeral=hidden)
 

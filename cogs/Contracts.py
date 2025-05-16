@@ -2,6 +2,7 @@ from contracts import get_season_data
 from shared import get_member_from_username
 from discord.ext import commands, tasks
 from typing import Optional
+from thefuzz import process
 import contracts
 import datetime
 import logging
@@ -158,6 +159,11 @@ async def build_profile_embed(bot, ctx, username: str = None, c_season: str = No
 	if not contract_user:
 		error_embed = discord.Embed(color=discord.Color.red())
 		error_embed.description = ":x: User not found!"
+		fuzzy_results: list[tuple[str, int]] = process.extract(actual_username, season.users.keys(), limit=1)
+		if len(fuzzy_results) > 0:
+			fuzzy_username, _ = fuzzy_results[0]
+			error_embed.description = f":x: User not found! Did you mean **{fuzzy_username}**?"
+
 		return error_embed
 
 	embed = get_common_embed(last_updated_timestamp, contract_user, member, c_season)
@@ -196,6 +202,11 @@ async def build_stats_embed(rep: Optional[str] = None, c_season: str = None):
 	if rep and rep.upper() not in season.reps:
 		error_embed = discord.Embed(color=discord.Color.red())
 		error_embed.description = ":x: Invalid rep!"
+		fuzzy_results: list[tuple[str, int]] = process.extract(rep.strip().upper(), season.reps.keys(), limit=1)
+		if len(fuzzy_results) > 0:
+			fuzzy_rep, _ = fuzzy_results[0]
+			error_embed.description = f":x: Invalid rep! Did you mean **{fuzzy_rep}**?"
+
 		return error_embed
 
 	if not rep:
@@ -408,7 +419,14 @@ class Contracts(commands.Cog):
 		season, _ = await get_season_data(c_season)
 		contracts_user = season.get_user(actual_username)
 		if not contracts_user:
-			return await ctx.respond(embed=discord.Embed(color=discord.Color.red(), description=":x: User not found!"), ephemeral=hidden)
+			error_embed = discord.Embed(color=discord.Color.red())
+			error_embed.description = ":x: User not found!"
+			fuzzy_results: list[tuple[str, int]] = process.extract(actual_username, season.users.keys(), limit=1)
+			if len(fuzzy_results) > 0:
+				fuzzy_username, _ = fuzzy_results[0]
+				error_embed.description = f":x: User not found! Did you mean **{fuzzy_username}**?"
+
+			return await ctx.respond(embed=error_embed, ephemeral=hidden)
 
 		await _send_contracts_embed_response(ctx, contracts_user, member, hidden, c_season=c_season)
 

@@ -452,7 +452,13 @@ class Contracts(commands.Cog):
 				)
 			)
 		elif not contracts_user:
-			return await ctx.reply(embed=discord.Embed(color=discord.Color.red(), description=":x: User not found!"))
+			error_embed = discord.Embed(color=discord.Color.red())
+			error_embed.description = ":x: User not found!"
+			fuzzy_results: list[tuple[str, int]] = process.extract(actual_username, season.users.keys(), limit=1)
+			if len(fuzzy_results) > 0:
+				fuzzy_username, fuzzy_confidence = fuzzy_results[0]
+				error_embed.description = f":x: User not found! Did you mean **{fuzzy_username}** ({fuzzy_confidence}%)?"
+			return await ctx.reply(embed=error_embed)
 
 		embed = await _create_user_contracts_embed(contracts_user, member)
 		await ctx.reply(embed=embed)

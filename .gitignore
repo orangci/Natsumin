@@ -7,4 +7,5 @@ cache/
 *.log
 data/
 logs/
+*.db
 start.ps1

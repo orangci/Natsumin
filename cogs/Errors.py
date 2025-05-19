@@ -51,7 +51,6 @@ class Errors(commands.Cog):
 		await ctx.reply(embed=embed)
 
 		self.logger.error(f"@{ctx.author.name} -> Command error in {ctx.command}: {error_type} - {error}")
-		# self.logger.exception("Traceback:")
 
 	@commands.Cog.listener()
 	async def on_application_command_error(self, ctx: discord.ApplicationContext, error: discord.DiscordException):

@@ -1,38 +1,66 @@
 from typing import Mapping, Optional
 from config import BOT_CONFIG, BASE_EMBED_COLOR
-from contracts import cache_reset_loop
-from discord.ext import commands
+from discord.ext import commands, tasks
 from dotenv import load_dotenv
-import asyncio
+import utils
+import contracts
 import discord
 import os
 
 load_dotenv()
-bot = commands.Bot(
-	command_prefix=BOT_CONFIG.prefix,
+
+
+class Natsumin(commands.Bot):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+		self.sync_to_sheet.start()
+		self.anicord: discord.Guild
+
+	async def on_ready(self):
+		os.system("cls" if os.name == "nt" else "clear")
+		print(f"Logged in as {self.user.name}#{self.user.discriminator}!")
+		self.anicord = self.get_guild(994071728017899600)
+
+	async def get_contract_user(self, *, id: int = None, username: str = None) -> discord.User | None:
+		if id:
+			discord_user = (self.anicord.get_member(id) or await self.anicord.fetch_member(id)) if self.anicord else await self.get_or_fetch_user(id)
+			return discord_user
+		elif username:
+			if d := await utils.find_madfigs_user(search_name=username):
+				id = d["user_id"]
+				return (self.anicord.get_member(id) or await self.anicord.fetch_member(id)) if self.anicord else await self.get_or_fetch_user(id)
+
+			for member in self.get_all_members():
+				if member.name == username:
+					return member
+		return None
+
+	@tasks.loop(minutes=10)
+	async def sync_to_sheet(self):
+		await contracts.sync_season_db()
+
+	@sync_to_sheet.before_loop
+	async def before_sync(self):
+		await self.wait_until_ready()
+
+
+bot = Natsumin(
+	command_prefix=commands.when_mentioned_or(BOT_CONFIG.prefix),
 	status=discord.Status.online,
-	activity=discord.CustomActivity(name="?/? users passed | %help"),
 	intents=discord.Intents.all(),
 	case_insensitive=True,
 	allowed_mentions=discord.AllowedMentions(everyone=False, roles=False, users=True, replied_user=False),
 )
 
 
-@bot.event
-async def on_ready():
-	os.system("cls" if os.name == "nt" else "clear")
-	print(f"Logged in as {bot.user.name}#{bot.user.discriminator}!")
-	asyncio.create_task(cache_reset_loop())
-
-
 def recursive_load_cogs(path: str):
-	for file in os.listdir(path):
-		if file.endswith(".py") and not file.startswith("_"):
-			cog_name = f"{path.replace('/', '.')}.{file[0:-3]}"
-			bot.load_extension(cog_name)
-			continue
-		if os.path.isdir(f"{path}/{file}"):
-			recursive_load_cogs(f"{path}/{file}")
+	for root, _, files in os.walk(path):
+		for file in files:
+			if file.endswith(".py"):
+				relative_path = os.path.relpath(root, path).replace(os.sep, ".")
+				cog_name = f"{relative_path}.{file[:-3]}" if relative_path != "." else file[:-3]
+				bot.load_extension(f"{path}.{cog_name}")
 
 
 class Help(commands.HelpCommand):
@@ -87,6 +115,5 @@ class Help(commands.HelpCommand):
 
 bot.help_command = Help()
 
-
 recursive_load_cogs("cogs")
-bot.run(os.getenv("DISCORD_TOKEN"))
+bot.run(os.getenv("DEV_DISCORD_TOKEN"))

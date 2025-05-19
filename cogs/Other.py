@@ -1,11 +1,15 @@
 from discord.ext import commands
+from typing import TYPE_CHECKING
 import logging
 import discord
 import config
 
+if TYPE_CHECKING:
+	from main import Natsumin
+
 
 class Other(commands.Cog):
-	def __init__(self, bot: commands.Bot):
+	def __init__(self, bot: "Natsumin"):
 		self.bot = bot
 		self.logger = logging.getLogger("bot.other")
 
@@ -86,6 +90,8 @@ class Other(commands.Cog):
 """
 		await ctx.reply(embed=embed)
 
+		await ctx.reply(embed=embed)
 
-def setup(bot: commands.Bot):
+
+def setup(bot):
 	bot.add_cog(Other(bot))

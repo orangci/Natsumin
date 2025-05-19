@@ -38,13 +38,31 @@ async def _create_user_contracts_embed(user: contracts.User, target: discord.Mem
 		line += f"[{contract_name}]({contract.review_url})" if contract.review_url else contract_name
 		embed.description += "\n" + line
 
+	if "Aid Contract 1" in user.contracts:
+		aids_passed = len([c_type for c_type, c in user.contracts.items() if "Aid Contract" in c_type and c.passed])
+		aids_total = len([c_type for c_type, c in user.contracts.items() if "Aid Contract" in c_type])
+		embed.description += f"\n### Aids ({aids_passed}/{aids_total})"
+		for contract_type in ["Aid Contract 1", "Aid Contract 2"]:
+			contract = user.contracts.get(contract_type)
+			if not contract or contract.name == "-":
+				continue
+
+			symbol = "✅" if contract.passed else "❌"
+			line = f"> {symbol} **{contract_type}**: "
+			line += (
+				f"[{contract.name if contract.name != '' else '*?*'}]({contract.review_url})"
+				if contract.review_url
+				else (contract.name if contract.name != "" else "*?*")
+			)
+			embed.description += "\n" + line
+
 	if user.status == "PASSED":
 		embed.description += "\n\n This user has **passed** the season."
 	elif user.status == "LATE PASS":
 		embed.description += "\n\n This user has **passed** the season **late**."
 
-	passed = len([c for c in user.contracts.values() if c.passed])
-	total = len(user.contracts)
+	passed = len([c for c_type, c in user.contracts.items() if c.passed and "Aid Contract" not in c_type])
+	total = len([c_type for c_type in user.contracts if "Aid Contract" not in c_type])
 	embed.title = f"Contracts ({passed}/{total})"
 
 	return embed

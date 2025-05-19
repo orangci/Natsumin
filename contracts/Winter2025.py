@@ -59,6 +59,7 @@ def _get_season_dashboard_data(sheet_data) -> Season:
 		"Extreme Special": [0, 0],
 		"Base Buddy": [0, 0],
 		"Challenge Buddy": [0, 0],
+		"Aids": [0, 0],
 	}
 
 	for row in rows:
@@ -249,6 +250,41 @@ def _add_specials_data(season: Season, sheet_data):
 			buddy_challenge.medium = "Anime / Manga"
 
 
+def _add_aids_data(season: Season, sheet_data):
+	rows: list[list[str]] = sheet_data["valueRanges"][9]["values"]
+
+	aids_count: list[int] = [0, 0]
+
+	aids_user_count: dict[str, int] = {}
+	for row in rows:
+		username = row[1].strip().lower()
+		aids_count[1] += 1
+
+		if username not in season.users:
+			continue
+
+		user = season.get_user(username)
+
+		if username not in aids_user_count:
+			aids_user_count[username] = 0
+
+		aids_user_count[username] += 1
+		passed_contract = True if row[0] == "PASSED" else False
+		if passed_contract:
+			aids_count[0] += 1
+
+		user.contracts[f"Aid Contract {aids_user_count[username]}"] = Contract(
+			name=row[4].strip(),
+			passed=passed_contract,
+			status=row[0],
+			progress=row[5].strip(),
+			rating=row[6].strip(),
+			review_url=_get_first_url(row[7] if len(row) > 7 else ""),
+			contractor=row[3].strip().lower(),
+		)
+	season.stats.contract_types["Aids"] = aids_count
+
+
 def _add_reps_data(season: Season, sheet_data):
 	rows: list[list[str]] = sheet_data["valueRanges"][8]["values"]
 
@@ -263,6 +299,7 @@ def _convert_sheet_to_season(sheet_data) -> Season:
 
 	_add_basechallenge_data(season, sheet_data)
 	_add_specials_data(season, sheet_data)
+	_add_aids_data(season, sheet_data)
 	_add_reps_data(season, sheet_data)
 
 	return season
@@ -284,6 +321,7 @@ async def get_data(session: aiohttp.ClientSession) -> Season:
 				"Extreme Special!A2:G95",
 				"Buddying!A2:N68",
 				"Odds!A1:B49",
+				"Aid Contracts!A5:H80",
 			],
 			"key": os.getenv("GOOGLE_API_KEY"),
 		},

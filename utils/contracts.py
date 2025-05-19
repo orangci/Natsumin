@@ -30,7 +30,7 @@ async def get_reps(season_db: contracts.SeasonDB, query: str = "", limit: int = 
 		sql_query += f" LIMIT {limit}"
 	async with season_db.connect() as db:
 		async with db.execute(sql_query, (f"%{query.lower()}%",)) as cursor:
-			return [row[0] for row in await cursor.fetchall()]
+			return [row[0] for row in await cursor.fetchall() if row[0] != "AIDS"]
 
 
 async def get_slash_usernames(ctx: discord.AutocompleteContext):
@@ -179,7 +179,7 @@ async def find_madfigs_user(user_id: int = None, search_name: str = None) -> dic
 			for user_id, username, prev_names in rows:
 				for prev in prev_names.split():
 					prev = prev.strip().lower()
-					if prev == username:
+					if search_name == prev:
 						return {"user_id": user_id, "username": username, "previous_names": prev_names}
 
 	return None

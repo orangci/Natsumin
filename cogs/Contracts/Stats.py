@@ -19,7 +19,15 @@ async def create_embed(rep: str | None, season: str = config.BOT_CONFIG.active_s
 
 	if not rep:
 		users_passed = await season_db.count_users(status=contracts.UserStatus.PASSED)
-		users_total = await season_db.count_users()
+		users_total = await season_db.count_users(
+			status=(
+				contracts.UserStatus.PASSED,
+				contracts.UserStatus.FAILED,
+				contracts.UserStatus.INCOMPLETE,
+				contracts.UserStatus.LATE_PASS,
+				contracts.UserStatus.PENDING,
+			)
+		)
 		contracts_passed = await season_db.count_contracts(status=contracts.ContractStatus.PASSED, kind=contracts.ContractKind.NORMAL)
 		contracts_total = await season_db.count_contracts(kind=contracts.ContractKind.NORMAL)
 		contract_types: dict[contracts.ContractType, list[int]] = {}
@@ -30,7 +38,16 @@ async def create_embed(rep: str | None, season: str = config.BOT_CONFIG.active_s
 			if contract.status == contracts.ContractStatus.PASSED:
 				type_status[0] += 1
 	else:
-		users_passed = await season_db.count_users(rep=rep, status=contracts.UserStatus.PASSED)
+		users_passed = await season_db.count_users(
+			rep=rep,
+			status=(
+				contracts.UserStatus.PASSED,
+				contracts.UserStatus.FAILED,
+				contracts.UserStatus.INCOMPLETE,
+				contracts.UserStatus.LATE_PASS,
+				contracts.UserStatus.PENDING,
+			),
+		)
 		users_total = await season_db.count_users(rep=rep)
 		contracts_passed = contracts_total = 0
 
@@ -109,7 +126,7 @@ class ContractsStats(commands.Cog):
 		season_db = await contracts.get_season_db(season)
 		reps = await get_reps(season_db)
 		if rep and rep.upper() not in reps:
-			await ctx.respond(embed=await create_error_embed(season_db, rep.upper()), ephemeral=hidden)
+			return await ctx.respond(embed=await create_error_embed(season_db, rep.upper()), ephemeral=hidden)
 
 		await ctx.respond(embed=await create_embed(rep.upper() if rep else None, season), ephemeral=hidden)
 
@@ -118,7 +135,7 @@ class ContractsStats(commands.Cog):
 		season_db = await contracts.get_season_db()
 		reps = await get_reps(season_db)
 		if rep and rep.upper() not in reps:
-			await ctx.reply(embed=await create_error_embed(season_db, rep.upper()))
+			return await ctx.reply(embed=await create_error_embed(season_db, rep.upper()))
 
 		await ctx.reply(embed=await create_embed(rep.upper() if rep else None))
 

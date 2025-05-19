@@ -347,10 +347,41 @@ async def _sync_aids_data(sheet_data: dict, db: SeasonDB, ctx: SeasonSyncContext
 	for row in rows:
 		username = get_cell(row, 1).lower()
 
-		if username not in ctx.users:
+		if username == "":
 			continue
+		elif username not in ctx.users:  # Either user didnt get cached properly or user wasn't in season, create it then
+			if not await db.has_user(username):
+				discord_id = None
+				if d := await utils.find_madfigs_user(search_name=username):
+					discord_id = d["user_id"]
+				await db.create_user(
+					username=username,
+					status=UserStatus.AIDS_NEWCOMER,
+					rep="AIDS",
+					discord_id=discord_id,
+					contractor="the cow lord",
+					list_url="https://discord.com/channels/994071728017899600/1008810171876773978/1374143929787613375",
+					veto_used=False,
+					accepting_manhwa=False,
+					accepting_ln=False,
+					preferences="Unknown",
+					bans="Unknown",
+				)
+				ctx.users[username] = User(
+					username=username,
+					status=UserStatus.AIDS_NEWCOMER,
+					rep="AIDS",
+					discord_id=discord_id,
+					contractor="the cow lord",
+					list_url="https://discord.com/channels/994071728017899600/1008810171876773978/1374143929787613375",
+					veto_used=False,
+					accepting_manhwa=False,
+					accepting_ln=False,
+					preferences="Unknown",
+					bans="Unknown",
+				)
 
-		user_contracts = ctx.contracts.get(username)
+		user_contracts = ctx.contracts.setdefault(username, {})
 
 		if username not in aids_user_count:
 			aids_user_count[username] = 0

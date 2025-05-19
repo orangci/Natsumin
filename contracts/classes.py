@@ -35,6 +35,7 @@ class UserStatus(Enum):
 	FAILED = 2
 	LATE_PASS = 3
 	INCOMPLETE = 4
+	AIDS_NEWCOMER = 5
 
 
 class ContractStatus(Enum):
@@ -252,11 +253,21 @@ class SeasonDB:
 	async def fetch_users(self, limit: int = None, **kwargs) -> list[User]:
 		query_conditions = []
 		params = {}
+		param_counter = 0
 		for key, value in kwargs.items():
-			if isinstance(value, Enum):
-				value = value.value
-			query_conditions.append(f"{key} = :{key}")
-			params[key] = value
+			if isinstance(value, tuple):
+				placeholders = []
+				for v in value:
+					param_key = f"{key}_{param_counter}"
+					param_counter += 1
+					placeholders.append(f":{param_key}")
+					params[param_key] = v.value if isinstance(v, Enum) else v
+				query_conditions.append(f"{key} IN ({', '.join(placeholders)})")
+			else:
+				if isinstance(value, Enum):
+					value = value.value
+				query_conditions.append(f"{key} = :{key}")
+				params[key] = value
 		query = "SELECT * FROM users"
 		if query_conditions:
 			query += " WHERE " + " AND ".join(query_conditions)
@@ -272,11 +283,21 @@ class SeasonDB:
 	async def fetch_contracts(self, limit: int = None, **kwargs) -> list[Contract]:
 		query_conditions = []
 		params = {}
+		param_counter = 0
 		for key, value in kwargs.items():
-			if isinstance(value, Enum):
-				value = value.value
-			query_conditions.append(f"{key} = :{key}")
-			params[key] = value
+			if isinstance(value, tuple):
+				placeholders = []
+				for v in value:
+					param_key = f"{key}_{param_counter}"
+					param_counter += 1
+					placeholders.append(f":{param_key}")
+					params[param_key] = v.value if isinstance(v, Enum) else v
+				query_conditions.append(f"{key} IN ({', '.join(placeholders)})")
+			else:
+				if isinstance(value, Enum):
+					value = value.value
+				query_conditions.append(f"{key} = :{key}")
+				params[key] = value
 		query = "SELECT * FROM contracts"
 		if query_conditions:
 			query += " WHERE " + " AND ".join(query_conditions)
@@ -292,14 +313,19 @@ class SeasonDB:
 	async def count_users(self, **kwargs) -> int:
 		query_conditions = []
 		params = {}
+		param_counter = 0
 		for key, value in kwargs.items():
-			if isinstance(value, Enum):
-				value = value.value
 			if isinstance(value, tuple):
-				placeholders = ", ".join(f":{key}_{i}" for i in range(len(value)))
-				query_conditions.append(f"{key} IN ({placeholders})")
-				params.update({f"{key}_{i}": v for i, v in enumerate(value)})
+				placeholders = []
+				for v in value:
+					param_key = f"{key}_{param_counter}"
+					param_counter += 1
+					placeholders.append(f":{param_key}")
+					params[param_key] = v.value if isinstance(v, Enum) else v
+				query_conditions.append(f"{key} IN ({', '.join(placeholders)})")
 			else:
+				if isinstance(value, Enum):
+					value = value.value
 				query_conditions.append(f"{key} = :{key}")
 				params[key] = value
 		query = "SELECT COUNT(*) FROM users"
@@ -315,14 +341,19 @@ class SeasonDB:
 	async def count_contracts(self, **kwargs) -> int:
 		query_conditions = []
 		params = {}
+		param_counter = 0
 		for key, value in kwargs.items():
-			if isinstance(value, Enum):
-				value = value.value
 			if isinstance(value, tuple):
-				placeholders = ", ".join(f":{key}_{i}" for i in range(len(value)))
-				query_conditions.append(f"{key} IN ({placeholders})")
-				params.update({f"{key}_{i}": v for i, v in enumerate(value)})
+				placeholders = []
+				for v in value:
+					param_key = f"{key}_{param_counter}"
+					param_counter += 1
+					placeholders.append(f":{param_key}")
+					params[param_key] = v.value if isinstance(v, Enum) else v
+				query_conditions.append(f"{key} IN ({', '.join(placeholders)})")
 			else:
+				if isinstance(value, Enum):
+					value = value.value
 				query_conditions.append(f"{key} = :{key}")
 				params[key] = value
 		query = "SELECT COUNT(*) FROM contracts"

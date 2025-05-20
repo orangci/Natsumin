@@ -73,15 +73,14 @@ class Help(commands.HelpCommand):
 		)
 
 	async def send_bot_help(self, mapping: Mapping[Optional[commands.Cog], list[commands.Command]]):
-		embed = discord.Embed(color=BASE_EMBED_COLOR)
+		embed = discord.Embed(color=BASE_EMBED_COLOR, description="")
 
 		for cog, cog_commands in mapping.items():
 			filtered: list[commands.Command] = await self.filter_commands(cog_commands, sort=True)
 			command_signatures = [self.get_command_signature(c) for c in filtered]
 
 			if command_signatures:
-				cog_name = getattr(cog, "qualified_name", "No Category")
-				embed.add_field(name=cog_name, value="\n".join([f"> {s}" for s in command_signatures]), inline=False)
+				embed.description += "\n".join([f"> {s}" for s in command_signatures]
 
 		channel = self.get_destination()
 		await channel.send(embed=embed)
